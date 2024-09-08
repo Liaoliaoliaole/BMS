@@ -1,0 +1,22 @@
+14:55:03 **** Rebuild of configuration Debug for project it2021_bms ****
+Info: Internal Builder is used for build
+arm-atollic-eabi-gcc -c ..\src\main.c -mthumb -mcpu=cortex-m3 -std=gnu11 -DSTM32L152xE -I../src -I../Drivers/CMSIS/Include -I../Drivers/CMSIS/Device/ST/STM32L1xx/Include -I../Drivers/STM32L1xx_HAL_Driver/Inc -O0 -ffunction-sections -fdata-sections -g -fstack-usage -Wall -o src\main.o 
+arm-atollic-eabi-gcc -c ..\src\usart2.c -mthumb -mcpu=cortex-m3 -std=gnu11 -DSTM32L152xE -I../src -I../Drivers/CMSIS/Include -I../Drivers/CMSIS/Device/ST/STM32L1xx/Include -I../Drivers/STM32L1xx_HAL_Driver/Inc -O0 -ffunction-sections -fdata-sections -g -fstack-usage -Wall -o src\usart2.o 
+arm-atollic-eabi-gcc -c -mthumb -mcpu=cortex-m3 -DSTM32L152xE -I../src -I../Drivers/CMSIS/Include -I../Drivers/CMSIS/Device/ST/STM32L1xx/Include -I../Drivers/STM32L1xx_HAL_Driver/Inc -g -Wa,--warn -x assembler-with-cpp -o src\startup_stm32l152xe.o ..\src\startup_stm32l152xe.s 
+arm-atollic-eabi-gcc -c ..\src\system_stm32l1xx.c -mthumb -mcpu=cortex-m3 -std=gnu11 -DSTM32L152xE -I../src -I../Drivers/CMSIS/Include -I../Drivers/CMSIS/Device/ST/STM32L1xx/Include -I../Drivers/STM32L1xx_HAL_Driver/Inc -O0 -ffunction-sections -fdata-sections -g -fstack-usage -Wall -o src\system_stm32l1xx.o 
+arm-atollic-eabi-gcc -c ..\src\tiny_printf.c -mthumb -mcpu=cortex-m3 -std=gnu11 -DSTM32L152xE -I../src -I../Drivers/CMSIS/Include -I../Drivers/CMSIS/Device/ST/STM32L1xx/Include -I../Drivers/STM32L1xx_HAL_Driver/Inc -O0 -ffunction-sections -fdata-sections -g -fstack-usage -Wall -o src\tiny_printf.o 
+arm-atollic-eabi-gcc -c ..\src\syscalls.c -mthumb -mcpu=cortex-m3 -std=gnu11 -DSTM32L152xE -I../src -I../Drivers/CMSIS/Include -I../Drivers/CMSIS/Device/ST/STM32L1xx/Include -I../Drivers/STM32L1xx_HAL_Driver/Inc -O0 -ffunction-sections -fdata-sections -g -fstack-usage -Wall -o src\syscalls.o 
+arm-atollic-eabi-gcc -o it2021_bms.elf src\main.o src\startup_stm32l152xe.o src\syscalls.o src\system_stm32l1xx.o src\tiny_printf.o src\usart2.o -mthumb -mcpu=cortex-m3 -T../stm32_flash.ld -specs=nosys.specs -static -Wl,-cref,-u,Reset_Handler -Wl,-Map=it2021_bms.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group 
+C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.3.0\ide\jre\bin\java -jar C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.3.0\Tools\arm-atollic-reports.jar sizeinfo list it2021_bms.elf 
+Generate build reports...
+Print size information
+   text	   data	    bss	    dec	    hex	filename
+   3008	     12	   1052	   4072	    fe8	it2021_bms.elf
+Print size information done
+Generate listing file
+Output sent to: it2021_bms.list
+Generate listing file done
+Generate build reports done
+
+14:55:05 Build Finished (took 2s.464ms)
+
