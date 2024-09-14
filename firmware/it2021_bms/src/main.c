@@ -29,11 +29,12 @@ SOFTWARE.
 
 /* Includes */
 #include <stddef.h>
-#include "stm32l1xx.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "stm32l1xx.h"
 #include "system_clock.h"
 #include "usart2.h"
+
 
 /* Private typedef */
 /* Private define  */
@@ -41,7 +42,6 @@ SOFTWARE.
 /* Private variables */
 /* Private function prototypes */
 /* Private functions */
-void delay_Ms(int delay);
 
 /**
 **===========================================================================
@@ -88,11 +88,4 @@ while(buf[len]!='\0')
 
   }
   return 0;
-}
-
-void delay_Ms(int delay)
-{
-	int i=0;
-	for(; delay>0;delay--)
-		for(i=0;i<2460;i++); //measured with oscilloscope
 }

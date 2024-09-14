@@ -30,3 +30,26 @@ char USART1_read()
 		data=USART1->DR;			//p739
 		return data;
 }
+
+void USART1_IRQHandler(void)
+{
+	char received_slave_address=0;
+
+	if(USART1->SR & 0x0020) 		//if data available in DR register. p737
+	{
+		received_slave_address=USART1->DR;
+	}
+	if(received_slave_address==SLAVE_ADDR) //if we have right address
+	{
+		mFlag=1;
+
+	}
+	else
+	{
+		mFlag=2;
+
+
+	}
+	USART1->CR1 &= ~0x0020;			//disable RX interrupt
+
+}
