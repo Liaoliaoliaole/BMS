@@ -1,4 +1,5 @@
 #include "usart1.h"
+#include "bms_configuration.h"
 
 void USART1_Init(void)
 {

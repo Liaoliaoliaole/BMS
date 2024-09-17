@@ -23,5 +23,8 @@ uint16_t adc_convert_battery_temp(const uint16_t adc_value) {
 }
 
 uint16_t adc_convert_battery_current(const uint16_t adc_value){
+	//float voltage = (adc_value / 4095.0) * REFERENCE_VOLT;
+	//float current = (voltage - REFERENCE_VOLT) / SHUNT_RESISTANCE;
+	//return current;  // Positive for charging, negative for discharging
 
 }

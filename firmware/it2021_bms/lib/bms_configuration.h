@@ -18,6 +18,15 @@
 #define ADC_DISABLE()   (ADC1->CR2 &= ~(1 << ADC_CR2_ADON_Pos))
 #define ADC_START_CONVERSION()  (ADC1->CR2 |= (1 << ADC_CR2_SWSTART_Pos))
 
+/* ADC Channel Definitions */
+#define CHANNEL_BATTERY_TEMP0  0
+#define CHANNEL_BATTERY_TEMP1  1
+#define CHANNEL_SHUNT_CURRENT  2
+#define CHANNEL_CELL_VOLT_1   3
+#define CHANNEL_CELL_VOLT_2   4
+#define CHANNEL_CELL_VOLT_3   5
+#define CHANNEL_CELL_VOLT_4   6
+
 /*Battery configuration*/
 #define CELL_VOLT_MAX (float)3.6
 #define REFERENCE_VOLT (float)5.0 /* Reference voltage of ±5V for the ADC */
@@ -30,8 +39,10 @@
 #define RESPONSE_BYTE_COUNT (NUM_REGISTERS*2) // 2 bytes per register
 #define START_ADDR 0x00
 
-struct register_data {
+
+/* Sensor Data Structure
+typedef struct {
     int LM35_temp;
     int shunt;
     int cell_vol[4];
-} typedef register_data;
+} BmsSensorData; */
