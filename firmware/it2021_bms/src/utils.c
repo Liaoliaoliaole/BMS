@@ -1,4 +1,6 @@
 #include "utils.h"
+#include "usart2.h"
+#include "bms_configuration.h"
 
 void delay_s(unsigned long delay)
 {
@@ -95,4 +97,18 @@ void data_sort(int arr[], int n)
 			}
 		}
 	}
+}
+
+
+
+void debug_print(const char* message) {
+    while (*message) {
+        USART2_write(*message++);
+    }
+}
+
+void debug_print_hex(unsigned int value) {
+    char buffer[BUFFER_SIZE];
+    char* hexStr = itoa(value, buffer, 16);
+    debug_print(hexStr);
 }

@@ -7,3 +7,7 @@ void delay_10us(unsigned long delay); //Timer 6
 
 //median filter
 void data_sort(int arr[], int n);
+
+//debug
+void debug_print(const char* message);
+void debug_print_hex(unsigned int value);

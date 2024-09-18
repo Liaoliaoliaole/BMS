@@ -1,26 +1,16 @@
 
 #include "stm32l1xx.h"
 #include "system_clock.h"
+#include "bms_configuration.h"
 #include "crc.h"
 #include "usart2.h"
 #include "utils.h"
 #include <stdio.h>
 
-#define HSI_VALUE    ((uint32_t)16000000)
-#define SLAVE_ADDR 0x01
-#define FUNCTION_CODE 0x04
-#define START_ADDR 0x00
-#define NUM_REGISTERS 6
-#define RESPONSE_BYTE_COUNT (NUM_REGISTERS*2) // 2 bytes per register
-#define MAX_REGISTERS 10
-#define BUFFER_SIZE 20
-
-
 void extract_registers_info(unsigned char* received_frame, unsigned short int* reg_addr, unsigned short int* reg_quantity);
 void response_frame_constructor(int *sensor_value);
 void wrong_slave_address(void);
-void debug_print(const char* message);
-void debug_print_hex(unsigned int value);
+
 
 void read_sensor_values(int *sensors);
 int sensor_value[NUM_REGISTERS] = {0};
@@ -47,10 +37,15 @@ int main(void) {
 	NVIC_EnableIRQ(USART2_IRQn); 	//enable interrupt in NVIC
 	__enable_irq();
 
-	//Set pin PA5 for LED
-	RCC->AHBENR |= 1;				//enable GPIOA clock
-	GPIOA->MODER&=~0x00000C00;		//clear pin mode
-	GPIOA->MODER|=0x00000400;		//set pin PA5 to output model
+	mux_init();
+
+	/*
+	 * TEST for mux implementation.
+	for (int channel = 0; channel < 8; channel++) {
+	   mux_select(channel);  // Select a channel (PB3, PB4, PB5)
+	   delay_ms(1000);  // Wait 1 second to observe LED behavior
+	}
+	*/
 
 	unsigned char received_frame[8] = {0};
 
@@ -172,10 +167,6 @@ void response_frame_constructor(int *sensor_value)
 		USART2_write(response_frame[i]);
 	}
 	delay_ms(10);
-
-	//LED off, receiving mode activated.
-	GPIOA->ODR&=~0x20;
-
 }
 
 //Check slave address is correct, give value to mFlag_
@@ -206,15 +197,3 @@ void read_sensor_values(int *sensors) {
     sensors[5] = 3550;  // Mock cell voltage4: 3.55V (in millivolts: 3550 mV)
 }
 
-
-void debug_print(const char* message) {
-    while (*message) {
-        USART2_write(*message++);
-    }
-}
-
-void debug_print_hex(unsigned int value) {
-    char buffer[BUFFER_SIZE];
-    char* hexStr = itoa(value, buffer, 16);
-    debug_print(hexStr);
-}
