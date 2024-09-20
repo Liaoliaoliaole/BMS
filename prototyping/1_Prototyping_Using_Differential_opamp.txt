@@ -1,0 +1,45 @@
+Prototyping Using a Differential Amplifier for Voltage Measurement
+
+1. Choosing Which Input Connects to the Higher Voltage
+The differential amplifier has two inputs:
+
+Non-inverting input (+): This input adds the incoming voltage.
+Inverting input (-): This input subtracts the incoming voltage.
+To decide which input should connect to the higher voltage, it's important to consider the expected polarity of the output signal. The differential amplifier amplifies the difference between the two inputs as: 
+𝑉out=𝐴×(𝑉+ − 𝑉−)Where:
+V +​  is the voltage at the non-inverting terminal (+)
+𝑉−  is the voltage at the inverting terminal (-)
+A is the gain of the amplifier.（R3/R1）
+For positive output voltage:
+Connect the higher voltage to the non-inverting input (+) and the lower voltage to the inverting input (-). This ensures a positive output voltage, as 𝑉+>𝑉−.
+For negative output voltage:
+
+Connect the higher voltage to the inverting input (-) and the lower voltage to the non-inverting input (+). This results in a negative output voltage.
+Our opamp connected GND not negative power souce, so cant go negative value, where expect a positive difference (e.g., measuring the voltage drop across a component), connect the higher voltage to the non-inverting input.
+
+2.  Breadboard Resistance and Resistor Tolerance Affecting Measurement
+When building circuits on a breadboard, several factors can introduce measurement errors, particularly small resistances and tolerances:Breadboard Resistance:This resistance can introduce voltage drops, especially if working with high-precision measurements or low-resistance components.
+
+Resistor Tolerance:Resistors come with a tolerance value (e.g., ±1%, ±5%), indicating how much the actual resistance can deviate from the nominal value.
+Effect on Measurement: In voltage dividers, even small deviations can result in incorrect voltage drops, affecting VALUE readings.
+
+3. Calibration.
+Baseline Measurement:measure known reference voltages at different points in the circuit. For instance, use a calibrated multimeter to measure the actual voltages.
+Create a Calibration Curve:Record the corresponding output from differential amplifier.
+
+Create a Calibration Curve: 
+Based on the recorded data, establish a relationship between the actual voltage and the measured values.could be linear (if the amplifier behaves ideally) or slightly non-linear depending on . For example, linear:
+Use software to map the measured ADC values to actual voltages. A simple linear calibration can be applied using:
+𝑉actual=𝑚×𝑉measured+𝑏
+Where 𝑚 is the slope and 𝑏 is the intercept, both determined from calibration data.
+
+example
+m = 0.99  # Slope from calibration curve
+b = 0.02  # Offset from calibration curve
+
+def calibrated_voltage(raw_adc_value):
+    measured_voltage = raw_adc_value * (V_ref / ADC_max_value)  
+    actual_voltage = m * measured_voltage + b
+    return actual_voltage
+
+
