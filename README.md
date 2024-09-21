@@ -14,7 +14,7 @@ It is application running on STM32L152RE Nucleo development board.
 ### Preconditions:
 In windows :  
 cmake, ninja, stsw-link007,gcc-arm-none-eabi compiler are installed.
-Details of enviroment set could be seen in Confluence: (TODO)   
+Details of enviroment set could be seen in Confluence: [How-To-CrossCompile-BMSServerApp](https://liyuanliull.atlassian.net/wiki/spaces/BMSDEVELOP/pages/426109/How-to+Set+Up+Environment+and+Building+the+BMSServerApp)   
 ### Build steps
 Execute following command in terminal(such as windows powershell) under the directory where CMakeLists.txt existed:  
 `mkdir build`   
