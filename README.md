@@ -15,15 +15,15 @@ It is application running on STM32L152RE Nucleo development board.
 In windows :  
 cmake, ninja, stsw-link007,gcc-arm-none-eabi compiler are installed.
 Details of enviroment set could be seen in Confluence: [How-To-CrossCompile-BMSServerApp](https://liyuanliull.atlassian.net/wiki/spaces/BMSDEVELOP/pages/426109/How-to+Set+Up+Environment+and+Building+the+BMSServerApp)   
-### Build steps
-Execute following command in terminal(such as windows powershell) under the directory where CMakeLists.txt existed:  
-`mkdir build`   
-`cd build`   
-`cmake -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -G "Ninja" ..`   
-`ninja`  
-If clean the build, run: `ninja clean`   
-Then connect the stm32l152re to PC, and run:   
-`st-flash write stm32l152_nucleo.bin 0x08000000`
+### Build scripts
+Navigate to the directory where build script existed.   
+Execute following command in terminal(such as windows powershell):  
+`.\build_BMSServerApp.ps1`   
+  
+Then connect the stm32l152re to PC, and run:    
+`st-flash write BMSServerApp\build\stm32l152_nucleo.bin 0x08000000`   
+
+To remove the build, remove `build` directory.
 
 # `prototyping`
 This section will store the code, configurations, and other resources related to early-stage project prototyping. It will be used to experiment with features, develop proof-of-concept implementations, and try out ideas before they are moved into production.

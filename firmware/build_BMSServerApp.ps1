@@ -19,7 +19,4 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-st-flash write "${buildDir}\stm32l152_nucleo.bin" 0x08000000
-Write-Host "Flashed firmware to STM32L152RE."
-
 cd ..
