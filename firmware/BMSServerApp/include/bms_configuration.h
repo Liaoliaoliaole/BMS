@@ -46,7 +46,7 @@
 
 /*Battery configuration*/
 #define CELL_VOLT_MAX (float)3.6
-#define REFERENCE_VOLT (float)5.0 /* Reference voltage of �5V for the ADC */
+#define REFERENCE_VOLT (float)5.0 /* Reference voltage of 5V for the ADC */
 
 /* MODBUS Configuration*/
 #define HSI_VALUE    ((uint32_t)16000000)
@@ -58,6 +58,12 @@
 #define MAX_REGISTERS 10
 #define BUFFER_SIZE 20
 
+/*ADC Convert configuration*/
+#define ADC_MAX_VALUE 4095.0
+#define GAIN 33.0 // TODO not actual value
+#define R_SHUNT 0.01 //TODO not actual value
+#define POSITIVE_REF_VOLT 5.0   // Positive reference voltage
+#define NEGATIVE_REF_VOLT -1.4  // Negative reference voltage
 
 /* Sensor Data Structure
 typedef struct {

@@ -8,6 +8,8 @@
 #include "mux.h"
 #include "usart2.h"
 #include "utils.h"
+#include "adc.h"
+#include "adc_converter.h"
 
 void extract_registers_info(uint8_t* received_frame, uint16_t* reg_addr, uint16_t* reg_quantity);
 void response_frame_constructor(int16_t *sensor_value);
@@ -40,6 +42,7 @@ int main(void) {
 	__enable_irq();
 
 	mux_init();
+	adc_init();
 
 	/*
 	 * TEST for mux implementation.
@@ -53,6 +56,23 @@ int main(void) {
 
     while(1)
     {
+		    uint16_t adc_value;
+	char buf[100];
+
+    adc_value = adc_read(0);
+    uint16_t cell_voltage = adc_convert_cell_voltage(adc_value);
+    sprintf(buf, "Simulated cell voltage %u mV\r\n", cell_voltage);
+    USART2_send_string(buf);
+
+    adc_value = adc_read(1);
+    int16_t battery_temp = adc_convert_battery_temp(adc_value);
+    sprintf(buf, "Simulated Battery Temperature: %d degrees Celsius\r\n", battery_temp);
+    USART2_send_string(buf); 
+
+    adc_value = adc_read(4);
+    uint16_t battery_current = adc_convert_battery_current(adc_value);
+    sprintf(buf, "Simulated Battery Current: %u mA\r\n", battery_current);
+    USART2_send_string(buf); 
     	switch (mFlag_) {
             case 0:
                 for (uint8_t k = 0; k < 8;k++)
@@ -190,11 +210,35 @@ void USART2_IRQHandler(void)
 
 }
 
+/* Mock adc values to test sdc converter and modbus*/
 void read_sensor_values(int16_t *sensors) {
-    sensors[0] = 2200;  // Mock temperature1: 22.00�C
-    sensors[1] = 2300;  // Mock temperature2: 23.00�C
-    sensors[2] = 3700;  // Mock cell voltage1: 3.7V (in millivolts: 3700 mV)
-    sensors[3] = 3650;  // Mock cell voltage2: 3.65V (in millivolts: 3650 mV)
+    uint16_t adc_value;
+    char buf[100];
+
+    // Read ADC value for cell voltage 1
+    adc_value = adc_read(0);
+    uint16_t cell_voltage = adc_convert_cell_voltage(adc_value);
+    //sprintf(buf, "Simulated cell voltage: %u mV, corresponding ADC value: %u\r\n", cell_voltage, adc_value);
+    //USART2_send_string(buf);
+
+    // Read ADC value for battery temperature
+    adc_value = adc_read(1);
+    int16_t battery_temp = adc_convert_battery_temp(adc_value);
+    //sprintf(buf, "Simulated Battery Temperature: %d degrees Celsius\r\n", battery_temp);
+    //USART2_send_string(buf); // Send battery temperature information
+
+    // Read ADC value for battery current
+    adc_value = adc_read(4);
+    uint16_t battery_current = adc_convert_battery_current(adc_value);
+    //sprintf(buf, "Simulated Battery Current: %u mA\r\n", battery_current);
+    //USART2_send_string(buf); // Send battery current information
+
+    // Send the sensor values to the sensors array
+    sensors[0] = battery_temp;    // Store battery temperature in sensors array
+    sensors[1] = adc_value;        // Store ADC value for battery temperature
+    sensors[2] = cell_voltage;     // Store cell voltage in sensors array
+    sensors[3] = battery_current;   // Store battery current in sensors array
+
     sensors[4] = 3800;  // Mock cell voltage3: 3.8V (in millivolts: 3800 mV)
     sensors[5] = 3550;  // Mock cell voltage4: 3.55V (in millivolts: 3550 mV)
 }

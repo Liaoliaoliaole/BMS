@@ -1,4 +1,5 @@
 #include "usart2.h"
+#include "stm32l1xx.h"
 
 void USART2_Init(void)
 {
@@ -15,13 +16,6 @@ void USART2_Init(void)
 	USART2->CR1 |= 0x00002000;	//UE bit. p739-740. Uart enable
 }
 
-void USART2_write(uint8_t data)
-{
-	//wait while TX buffer is empty
-	while(!(USART2->SR&0x0080)){} 	//TXE: Transmit data register empty. p736-737
-		USART2->DR=(data);			//p739
-}
-
 uint8_t USART2_read()
 {
 	uint8_t data=0;
@@ -29,4 +23,25 @@ uint8_t USART2_read()
 	while(!(USART2->SR&0x0020)){} 	//Bit 5 RXNE: Read data register not empty
 		data=USART2->DR;			//p739
 		return data;
+}
+
+void USART2_write(char data)
+{
+	//wait while TX buffer is empty
+	while(!(USART2->SR&0x0080)){} 	//TXE: Transmit data register empty. p736-737
+		USART2->DR=(data);			//p739
+}
+
+void USART2_send_string(const char *string) {
+    size_t len = strlen(string);
+    for (; len > 0; len--, string++) {
+        USART2_write(*string);
+    }
+}
+
+void USART2_send_data(const void *data, size_t len) {
+    char *d = (char *)data;
+    for (; len > 0; len--, d++) {
+        USART2_write(*d);
+    }
 }

@@ -1,5 +1,6 @@
 #include "bms_configuration.h"
 #include "adc.h"
+#include "stm32l1xx.h"
 
 /*
 Initialize ADC.
@@ -30,7 +31,7 @@ void adc_init(void) {
 	ADC1->CR1 &=  ~(0x3 << 24);		//resolution 12-bit
 }
 
-uint16_t adc_read(const uint8_t adc_channel) {
+/* uint16_t adc_read(const uint8_t adc_channel) {
 	ADC_DISABLE();
 	ADC1->SQR5 = adc_channel;      // Conversion sequence starts at selected channel
 	ADC_ENABLE();
@@ -38,7 +39,19 @@ uint16_t adc_read(const uint8_t adc_channel) {
 	while (!(ADC1->SR & 2)){}  // Wait for conversion complete
 	uint16_t adc_value = ADC1->DR;     // Read conversion result
 	return adc_value;
+} */
+
+uint16_t adc_read(const uint8_t adc_channel) {
+    // Simulated ADC values based on the selected channel.
+    switch (adc_channel) {
+        case 0: // CH0 - Simulate cell voltage measurement (PA0)
+            return 3000;  // Example ADC value for testing cell voltage
+        case 1: // CH1 - Simulate battery temperature from LM35 (PA1)
+            return 2048;  // Example ADC value for mid-range temperature (25°C for LM35)
+        case 4: // CH4 - Simulate shunt resistor current measurement (PA4)
+            return 2500;  // Example ADC value for testing current measurement
+        default:
+            return 0;     // Default case if no valid channel is provided
+    }
 }
 
-//TODO: Read p270 ADC Power on-off
-//     Read p272 Single conversion mode

@@ -1,4 +1,6 @@
 #include "mux.h"
+#include "stm32l1xx.h"
+#include "bms_configuration.h"
 
 void mux_init() {
 	RCC->AHBENR |= (1<<1); // Enable GPIOB
