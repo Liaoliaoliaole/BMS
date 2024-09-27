@@ -4,9 +4,6 @@
 
 This repository contains the following directories to organize various aspects of the Battery Management System (BMS) project:
 
-### `db`
-This directory will house all database-related files.
-
 ### `firmware`
 This folder is dedicated to all firmware code related to the Battery Management System (BMS), including embedded system programming and hardware communication.
 
