@@ -36,7 +36,7 @@ int16_t adc_convert_battery_temp(const uint16_t adc_value) {
 	GAIN can be calculated as Rf/Rin=3.3/0.1=33
 */
 uint16_t adc_convert_battery_current(const uint16_t adc_value){
-    float voltage = (float)adc_value * (5.0 / ADC_MAX_VALUE);  // Convert ADC to voltage
+    float voltage = (float)adc_value * (POSITIVE_REF_VOLT / ADC_MAX_VALUE);  // Convert ADC to voltage
     float shunt_voltage = voltage / GAIN;  // Undo the amplifier gain
     float current = shunt_voltage / R_SHUNT; 
     return current;

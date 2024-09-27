@@ -43,11 +43,6 @@
 
 #define MUX_IDR_ODR_MASK (MUX_PIN_A | MUX_PIN_B | MUX_PIN_C)  // ODR and IDR mask for MUX pins
 
-
-/*Battery configuration*/
-#define CELL_VOLT_MAX (float)3.6
-#define REFERENCE_VOLT (float)5.0 /* Reference voltage of 5V for the ADC */
-
 /* MODBUS Configuration*/
 #define HSI_VALUE    ((uint32_t)16000000)
 #define SLAVE_ADDR 0x01
@@ -58,16 +53,13 @@
 #define MAX_REGISTERS 10
 #define BUFFER_SIZE 20
 
+
+/*Battery configuration*/
+#define CELL_VOLT_MAX 3.6 // Maximum cell voltage corresponding to ADC_MAX_VALUE
+
 /*ADC Convert configuration*/
-#define ADC_MAX_VALUE 4095.0
-#define GAIN 33.0 // TODO not actual value
-#define R_SHUNT 0.01 //TODO not actual value
+#define ADC_MAX_VALUE 4095.0 // For a 12-bit ADC
+#define GAIN 33.0 // Gain from the amplifier circuit TODO not actual value
+#define R_SHUNT 0.01 // Shunt resistor value in Ohms TODO not actual value
 #define POSITIVE_REF_VOLT 5.0   // Positive reference voltage
 #define NEGATIVE_REF_VOLT -1.4  // Negative reference voltage
-
-/* Sensor Data Structure
-typedef struct {
-    int LM35_temp;
-    int shunt;
-    int cell_vol[4];
-} BmsSensorData; */
