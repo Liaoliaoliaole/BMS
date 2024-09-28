@@ -1,0 +1,42 @@
+name: STM32 Build Workflow
+
+on:
+  push:
+    branches: [ "SCRUM-16-Inspection-CI-CD-pipe-intergration-build-automation-in-github" ]
+  pull_request:
+    branches: [ "SCRUM-16-Inspection-CI-CD-pipe-intergration-build-automation-in-github" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up ARM GCC Toolchain
+      run: |
+        choco install gcc-arm-none-eabi --version=10.3.1  # Install specific version of ARM GCC toolchain
+
+    - name: Set up CMake and Ninja
+      run: |
+        choco install cmake ninja  # Install CMake and Ninja
+
+    - name: Create Build Directory
+      run: |
+        mkdir .\build  # Create a build directory
+
+    - name: Configure CMake
+      run: |
+        cd .\build  # Change to build directory
+        cmake -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -G "Ninja" ..  # Run CMake with the toolchain file
+
+    - name: Build Project
+      run: |
+        cd .\build  # Change to build directory
+        ninja  # Build the project
+
+    - name: Copy Binary File
+      run: |
+        cd .\build  # Change to build directory
+        if exist *.bin copy *.bin ..  # Copy the binary file to the project root if it exists
