@@ -1,1 +1,3 @@
-firmware/.metadata/*
+firmware/BMSServerApp/build/*
+.vscode/*
+
