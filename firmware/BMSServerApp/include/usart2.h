@@ -1,8 +1,13 @@
 #pragma once
-#include "stm32l1xx.h"
+#include <stddef.h>
+#include <stdint.h>
 
 void USART2_Init(void);
 
-void USART2_write(uint8_t data);
-
 uint8_t USART2_read(void);
+
+void USART2_write(char data);
+
+void USART2_send_data(const void *data, size_t len);
+
+void USART2_send_string(const char* str);
