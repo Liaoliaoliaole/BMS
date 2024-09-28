@@ -41,13 +41,17 @@ void adc_init(void) {
 	return adc_value;
 } */
 
+
+/*Mock ADC read*/
 uint16_t adc_read(const uint8_t adc_channel) {
     // Simulated ADC values based on the selected channel.
     switch (adc_channel) {
         case 0: // CH0 - Simulate cell voltage measurement (PA0)
-            return 3000;  // Example ADC value for testing cell voltage
-        case 1: // CH1 - Simulate battery temperature from LM35 (PA1)
-            return 2048;  // Example ADC value for mid-range temperature (25°C for LM35)
+            return 3000;  // Example ADC value for testing cell voltage(2.42V)
+        case 1: // CH1 - Simulate ADC input from LM35 (PA1) output
+            return 1475;  // Example ADC value for mid-range temperature (1.197V for LM35)
+        case 2: // CH2 - Simulate ADC input from LM35 (PA1) diode
+            return 1190;  // Example ADC value for mid-range temperature (0.965V for LM35)
         case 4: // CH4 - Simulate shunt resistor current measurement (PA4)
             return 2500;  // Example ADC value for testing current measurement
         default:

@@ -1,6 +1,8 @@
 #pragma once
 #include "stm32l1xx.h"
 
+#define HSI_VALUE    ((uint32_t)16000000)
+
 /* GPIO settings */
 #define GPIO_MODE_INPUT     0x00
 #define GPIO_MODE_OUTPUT    0x01
@@ -44,7 +46,10 @@
 #define MUX_IDR_ODR_MASK (MUX_PIN_A | MUX_PIN_B | MUX_PIN_C)  // ODR and IDR mask for MUX pins
 
 /* MODBUS Configuration*/
-#define HSI_VALUE    ((uint32_t)16000000)
+#define MODBUS_WAITING 0
+#define MODBUS_FRAME_RECEIVED 1
+#define MODBUS_WRONG_ADDRESS 2
+
 #define SLAVE_ADDR 0x01
 #define FUNCTION_CODE 0x04
 #define START_ADDR 0x00
@@ -53,13 +58,8 @@
 #define MAX_REGISTERS 10
 #define BUFFER_SIZE 20
 
-
-/*Battery configuration*/
-#define CELL_VOLT_MAX 3.6 // Maximum cell voltage corresponding to ADC_MAX_VALUE
-
 /*ADC Convert configuration*/
-#define ADC_MAX_VALUE 4095.0 // For a 12-bit ADC
-#define GAIN 33.0 // Gain from the amplifier circuit TODO not actual value
-#define R_SHUNT 0.01 // Shunt resistor value in Ohms TODO not actual value
-#define POSITIVE_REF_VOLT 5.0   // Positive reference voltage
-#define NEGATIVE_REF_VOLT -1.4  // Negative reference voltage
+#define ADC_MAX_VALUE 4095.0 //12-bit ADC
+#define REF_VOLT_ADC 3.3   // ADC reference voltage
+#define GAIN 33.0 // TODO not actual value
+#define R_SHUNT 0.01

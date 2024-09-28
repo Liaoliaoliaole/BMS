@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "usart2.h"
 #include "stm32l1xx.h"
 
