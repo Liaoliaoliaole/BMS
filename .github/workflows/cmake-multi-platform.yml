@@ -16,7 +16,7 @@ jobs:
 
     - name: Set up ARM GCC Toolchain
       run: |
-        choco install gcc-arm-none-eabi --version=10.3.1
+        choco install gcc-arm-none-eabi
 
     - name: Set up CMake and Ninja
       run: |
