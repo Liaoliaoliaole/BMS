@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
@@ -26,7 +26,7 @@ jobs:
           release: '10.3-2021.10' # The arm-none-eabi-gcc release to use.
 
     - name: Install Ninja
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@v4
 
     - name: Check CMake version
       run: cmake --version
@@ -37,11 +37,6 @@ jobs:
         cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
 
-    - name: Convert ELF to BIN
-      run: |
-        cd .\firmware\BMSServerApp\build
-        arm-none-eabi-objcopy -O binary BMSServerApp.elf BMSServerApp.bin
-
     - name: Copy Binary File
       run: |
         cd .\firmware\BMSServerApp\build
@@ -49,3 +44,7 @@ jobs:
           Copy-Item BMSServerApp.bin .. 
         }
 
+    - name: List Build Directory Files
+      run: |
+        cd .\firmware\BMSServerApp\build
+        dir  # List files on Windows
