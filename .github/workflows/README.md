@@ -19,6 +19,7 @@ The GitHub Actions workflow is defined in the `.github/workflows/build.yml` file
 3. **Set up Ninja** as the build system.
 4. **Configure the build** using CMake with the specified toolchain file (`toolchain.cmake`).
 5. **Compile the project** using Ninja in both **Debug** and **Release** modes.
+6. **Copy the binary output** (`.bin` file) from the build directory to the project root.
 
 ## Triggering the Workflow
 
