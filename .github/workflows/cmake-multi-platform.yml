@@ -38,7 +38,10 @@ jobs:
         cmake --build build   
 
     - name: Copy Binary File
+      shell: pwsh
       run: |
-        cd .\firmware\BMSServerApp\build
-        if exist *.bin copy *.bin ..  # Copy the binary file to the project root if it exists
+        $binFiles = Get-ChildItem .\firmware\BMSServerApp\build\*.bin
+        if ($binFiles) {
+          Copy-Item $binFiles -Destination ..\firmware\BMSServerApp
+        }
       continue-on-error: true
