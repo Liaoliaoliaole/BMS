@@ -2,9 +2,9 @@ name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
-    branches: [ "SCRUM-16-Inspection-CI-CD-pipe-intergration-build-automation-in-github" ]
+    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
   pull_request:
-    branches: [ "SCRUM-16-Inspection-CI-CD-pipe-intergration-build-automation-in-github" ]
+    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
