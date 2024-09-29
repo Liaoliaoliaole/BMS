@@ -30,13 +30,17 @@ Then connect the stm32l152re to PC, and run:
 
 To remove the build, remove `build` directory.
 
-## GitHub Actions Automation
+## GitHub Actions for CI/CD
 The BMSServerApp project also supports automated builds via GitHub Actions. This allows you to build the project in the cloud whenever changes are pushed to the specified branch or a pull request is made.
 
 ### How to Use GitHub Actions: 
-Trigger a Build: Any push or pull request to this branch will automatically trigger the build process.
-Check Build Status: Monitor the status of the build in the "Actions" tab of the GitHub repository.
-Find the Output: After the build completes, check the logs to find the output binary files. If the binary is generated successfully, it will be located in the firmware/BMSServerApp/build directory of the repository.
+- Trigger a Build: Any push or pull request to this branch will automatically trigger the build process.
+- Check Build Status: Monitor the status of the build in the "Actions" tab of the GitHub repository.
+- Find the Output:   
+  1. Click on the "Actions" tab.
+  2. Select the Workflow Run: Find the specific workflow run to view its details.
+  3. Scroll down to the "Artifacts" section on the workflow run page. This section shows the files that were uploaded during the workflow execution.
+  4. Download the Binary File:  Click on the link for the binary file wanted to download (e.g., BMSServerApp-Debug-bin or BMSServerApp-Release-bin).   
 
 # `prototyping`
 This section will store the code, configurations, and other resources related to early-stage project prototyping. It will be used to experiment with features, develop proof-of-concept implementations, and try out ideas before they are moved into production.
