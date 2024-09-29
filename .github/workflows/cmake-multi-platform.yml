@@ -28,9 +28,8 @@ jobs:
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v3
 
-    - name: Install CMake
-      run: |
-        choco install cmake --version=3.21.1
+    - name: Check CMake version
+      run: cmake --version
 
     - name: Build Project
       run: |
