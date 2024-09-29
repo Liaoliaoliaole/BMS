@@ -1,4 +1,4 @@
-name: STM32 Build Workflow
+name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
@@ -8,33 +8,35 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        type: [Debug, Release]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        submodules: recursive
 
-    - name: Set up ARM GCC Toolchain
-      run: |
-        choco install gcc-arm-none-eabi
+    - name: arm-none-eabi-gcc
+      uses: ryanwinter/arm-none-eabi-gcc@master
+      with:
+          release: '10.3-2021.10' # The arm-none-eabi-gcc release to use.
 
-    - name: Set up CMake and Ninja
-      run: |
-        choco install cmake ninja  # Install CMake and Ninja
+    - name: Install Ninja
+      uses: seanmiddleditch/gha-setup-ninja@v3
 
-    - name: Create Build Directory
+    - name: Install CMake
       run: |
-        mkdir .\firmware\BMSServerApp\build  # Create a build directory
-
-    - name: Configure CMake
-      run: |
-        cd .\firmware\BMSServerApp\build  # Change to build directory
-        cmake -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -G "Ninja" ..  # Run CMake with the toolchain file
+        choco install cmake --version=3.21.1
 
     - name: Build Project
       run: |
-        cd .\firmware\BMSServerApp\build  # Change to build directory
-        ninja  # Build the project
+        cd .\firmware\BMSServerApp
+        cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+        cmake --build build   
 
     - name: Copy Binary File
       run: |
