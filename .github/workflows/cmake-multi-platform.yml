@@ -37,8 +37,13 @@ jobs:
         cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
 
+    - name: Convert ELF to BIN
+      run: |
+        cd .\firmware\BMSServerApp\build
+        arm-none-eabi-objcopy -O binary BMSServerApp.elf BMSServerApp-${{ matrix.type }}.bin
+
     - name: Upload Binary File
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v2
       with:
-        name: BMSServerApp-bin
-        path: .\firmware\BMSServerApp\build\BMSServerApp.bin
+        name: BMSServerApp-${{ matrix.type }}-bin
+        path: .\firmware\BMSServerApp\build\BMSServerApp-${{ matrix.type }}.bin
