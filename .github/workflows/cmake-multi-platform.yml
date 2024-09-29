@@ -38,7 +38,7 @@ jobs:
         cmake --build build
 
     - name: Upload Binary File
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: BMSServerApp-bin
         path: .\firmware\BMSServerApp\build\BMSServerApp.bin
