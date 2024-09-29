@@ -36,3 +36,9 @@ jobs:
         cd .\firmware\BMSServerApp
         cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
+
+    - name: Copy Binary File
+      run: |
+        cd .\firmware\BMSServerApp\build
+        if exist *.bin copy *.bin ..  # Copy the binary file to the project root if it exists
+      continue-on-error: true
