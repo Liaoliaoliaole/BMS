@@ -48,3 +48,4 @@ Before running the workflow locally or contributing to the project, ensure you h
 ## References:
 1. https://ryanwinter.org/creating-a-github-workflow-for-the-gnu-arm-compiler/
 2. https://github.com/ryanwinter/arm-none-eabi-gcc?tab=readme-ov-file
+3. https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow
