@@ -37,10 +37,15 @@ jobs:
         cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
 
+    - name: Convert ELF to BIN
+      run: |
+        cd .\firmware\BMSServerApp\build
+        arm-none-eabi-objcopy -O binary BMSServerApp.elf BMSServerApp.bin
+
     - name: Copy Binary File
       run: |
         cd .\firmware\BMSServerApp\build
-        if (Test-Path *.bin) { Copy-Item *.bin .. } 
-      shell: pwsh
-      continue-on-error: true
+        if (Test-Path BMSServerApp.bin) { 
+          Copy-Item BMSServerApp.bin .. 
+        }
 
