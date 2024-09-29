@@ -40,5 +40,7 @@ jobs:
     - name: Copy Binary File
       run: |
         cd .\firmware\BMSServerApp\build
-        if exist *.bin copy *.bin ..  # Copy the binary file to the project root if it exists
+        if (Test-Path *.bin) { Copy-Item *.bin .. } 
+      shell: pwsh
       continue-on-error: true
+
