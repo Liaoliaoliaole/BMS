@@ -37,14 +37,8 @@ jobs:
         cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
 
-    - name: Copy Binary File
-      run: |
-        cd .\firmware\BMSServerApp\build
-        if (Test-Path BMSServerApp.bin) { 
-          Copy-Item BMSServerApp.bin .. 
-        }
-
-    - name: List Build Directory Files
-      run: |
-        cd .\firmware\BMSServerApp\build
-        dir  # List files on Windows
+    - name: Upload Binary File
+      uses: actions/upload-artifact@v2
+      with:
+        name: BMSServerApp-bin
+        path: .\firmware\BMSServerApp\build\BMSServerApp.bin
