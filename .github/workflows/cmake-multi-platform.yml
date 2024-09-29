@@ -35,13 +35,4 @@ jobs:
       run: |
         cd .\firmware\BMSServerApp
         cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
-        cmake --build build   
-
-    - name: Copy Binary File
-      shell: pwsh
-      run: |
-        $binFiles = Get-ChildItem .\firmware\BMSServerApp\build\*.bin
-        if ($binFiles) {
-          Copy-Item $binFiles -Destination ..\firmware\BMSServerApp
-        }
-      continue-on-error: true
+        cmake --build build
