@@ -43,13 +43,14 @@ void read_sensor_values(int16_t *sensors) {
     //USART2_send_string(buf); // Send battery current information
 
     // Send the sensor values to the sensors array
-    sensors[0] = cell_voltage;    // Store battery temperature in sensors array
-    sensors[1] = battery_temp;        // Store ADC value for battery temperature
-    sensors[2] = battery_current;     // Store cell voltage in sensors array
+    sensors[0] = battery_temp;    // Store battery temperature in sensors array
+    sensors[1] = battery_temp-12;        // Store ADC value for battery temperature
+    sensors[2] = cell_voltage;     // Store cell voltage in sensors array
 
-    sensors[3] = 4033;
-    sensors[4] = 3800;
-    sensors[5] = 3550;
+    sensors[3] = cell_voltage+1;
+    sensors[4] = cell_voltage-1;
+    sensors[5] = cell_voltage+2;
+    sensors[6] = battery_current;
 }
 
 // Main Modbus polling function
