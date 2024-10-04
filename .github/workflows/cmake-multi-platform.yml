@@ -1,0 +1,52 @@
+name: BMS_STM32L152RE Build Workflow
+
+on:
+  push:
+    branches: [ "SCRUM-16-Inspection-CI-CD-pipe-intergration-build-automation-in-github" ]
+  pull_request:
+    branches: [ "SCRUM-16-Inspection-CI-CD-pipe-intergration-build-automation-in-github" ]
+
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        type: [Debug, Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: arm-none-eabi-gcc
+      uses: ryanwinter/arm-none-eabi-gcc@master
+      with:
+          release: '10.3-2021.10'
+
+    - name: Install Ninja
+      uses: seanmiddleditch/gha-setup-ninja@v4
+
+    - name: Check CMake version
+      run: cmake --version
+
+    - name: Build Project
+      run: |
+        cd .\firmware\BMSServerApp
+        cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+        cmake --build build
+
+    - name: Convert ELF to BIN
+      run: |
+        cd .\firmware\BMSServerApp\build
+        arm-none-eabi-objcopy -O binary BMSServerApp.elf BMSServerApp-${{ matrix.type }}.bin
+
+    - name: Upload Binary File
+      uses: actions/upload-artifact@v4
+      with:
+        name: BMSServerApp-${{ matrix.type }}-bin
+        path: .\firmware\BMSServerApp\build\BMSServerApp-${{ matrix.type }}.bin
