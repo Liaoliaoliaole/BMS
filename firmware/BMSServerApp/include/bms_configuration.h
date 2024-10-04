@@ -53,7 +53,7 @@
 #define SLAVE_ADDR 0x01
 #define FUNCTION_CODE 0x04
 #define START_ADDR 0x00
-#define NUM_REGISTERS 6
+#define NUM_REGISTERS 7
 #define RESPONSE_BYTE_COUNT (NUM_REGISTERS*2) // 2 bytes per register
 #define MAX_REGISTERS 10
 #define BUFFER_SIZE 20
