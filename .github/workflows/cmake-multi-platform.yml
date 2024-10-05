@@ -2,9 +2,9 @@ name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
-    branches: [ "SCRUM-10-Create-a-function-in-master-so-it-can-write-values-in-mysql-database" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "SCRUM-10-Create-a-function-in-master-so-it-can-write-values-in-mysql-database" ]
+    branches: [ "main" ]
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true

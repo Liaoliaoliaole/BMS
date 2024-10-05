@@ -4,3 +4,5 @@ firmware/BMSServerApp/build/*
 !firmware/BMSServerApp/build/*.bin
 !firmware/BMSServerApp/build/
 
+.github/workflows/*
+
