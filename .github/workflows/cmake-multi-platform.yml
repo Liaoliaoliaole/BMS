@@ -26,12 +26,18 @@ jobs:
 
     - name: Install arm-none-eabi-gcc
       run: |
+        # Download the GCC toolchain
         curl -L -o gcc-arm-none-eabi.zip https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip
+        # Create the directory for extraction
         mkdir gcc-arm
+        # Extract the downloaded archive
         tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
+        # Manually add GCC to PATH for subsequent steps
         echo "Adding GCC to PATH"
-        echo "C:\\gcc-arm\\bin" >> $env:GITHUB_PATH
-        $env:PATH = "C:\\gcc-arm\\bin;" + $env:PATH
+        $env:PATH = "D:\\a\\BMS\\BMS\\gcc-arm\\bin;" + $env:PATH
+
+    - name: Verify GCC Installation
+      run: arm-none-eabi-gcc --version
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v4
@@ -44,11 +50,10 @@ jobs:
       run: |
         cd .\firmware\BMSServerApp
         $buildType = "${{ matrix.type }}"
-         $compilerPath = "C:\\gcc-arm\\bin\\arm-none-eabi-gcc.exe"
         if ($buildType -eq "Test") {
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_C_COMPILER="D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-gcc.exe" -DCMAKE_CXX_COMPILER="D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-g++.exe" -DTEST=ON
         } else {
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="$buildType"
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="$buildType" -DCMAKE_C_COMPILER="D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-gcc.exe" -DCMAKE_CXX_COMPILER="D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-g++.exe"
         }
         cmake --build build
 
