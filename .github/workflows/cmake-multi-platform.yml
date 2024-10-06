@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        type: [Debug, Release, Test]
+        type: [Debug, Release, Test]  # Added "Test" for testing build
 
     steps:
     - name: Checkout code
@@ -24,13 +24,13 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Download and Install arm-none-eabi-gcc
+    - name: Install arm-none-eabi-gcc
       run: |
         curl -L -o gcc-arm-none-eabi.zip https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip
         mkdir gcc-arm
         tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
         echo "Adding GCC to PATH"
-        echo "C:\gcc-arm\bin" >> $GITHUB_PATH
+        echo "C:\\gcc-arm\\bin" >> $env:GITHUB_PATH
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v4
@@ -39,13 +39,14 @@ jobs:
       run: cmake --version
 
     - name: Build Project
+      shell: pwsh  # Use PowerShell Core to execute the script
       run: |
         cd .\firmware\BMSServerApp
-        if [ "${{ matrix.type }}" == "Test" ]; then
+        if (${{ matrix.type }} -eq "Test") {
           cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
-        else
+        } else {
           cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
-        fi
+        }
         cmake --build build
 
     - name: Convert ELF to BIN
