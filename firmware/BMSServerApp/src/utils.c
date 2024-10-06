@@ -96,3 +96,14 @@ void data_sort(int32_t arr[], uint32_t n)
 		}
 	}
 }
+
+time_t get_current_time_ms(void) {
+    // Use TIM5 as a simple millisecond timer
+    RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;  // Enable Timer 5 clock
+    TIM5->PSC = 32000 - 1;  // Prescaler: 32 MHz / 32000 = 1 kHz (1 ms per tick)
+    TIM5->ARR = 0xFFFF;  // Max auto-reload value
+    TIM5->CNT = 0;  // Reset counter
+    TIM5->CR1 |= TIM_CR1_CEN;  // Enable Timer 5
+
+    return TIM5->CNT;  // Return current count as time in ms
+}

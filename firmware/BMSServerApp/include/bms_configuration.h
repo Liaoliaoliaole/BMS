@@ -28,3 +28,16 @@
 #define REF_VOLT_ADC 3.3   // ADC reference voltage
 #define GAIN 33.0 // TODO not actual value
 #define R_SHUNT 0.01
+
+/* Mosfet Control Configuration*/
+#define LOW_VOLTAGE_THRESHOLD 2.8
+#define HIGH_VOLTAGE_THRESHOLD 3.2
+#define HIGH_CURRENT_THRESHOLD 1.1
+#define LOW_CURRENT_THRESHOLD 0.9
+
+#ifdef TEST
+#define DEBOUNCE_DELAY_MS 10  // Reduce for testing
+#else
+#define DEBOUNCE_DELAY_MS 1000  // Normal operation delay
+#endif
+

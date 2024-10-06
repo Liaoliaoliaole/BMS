@@ -3,6 +3,11 @@
 
 #define HSI_VALUE    ((uint32_t)16000000)
 
+/* Mosfet PIN setting */
+//PB0 (Charge MOSFET) and PB1 (Discharge MOSFET) as output
+#define CHARGE_MOSFET_PIN 1  // PB1 for Charge MOSFET
+#define DISCHARGE_MOSFET_PIN 2  // PB2 for Discharge MOSFET
+
 /* MUX PIN setting */
 // Battery Voltage Measurement Multiplexer 1
 #define MUX_BATT1_SELECT_PIN1 (1U << 3)  // PB3
