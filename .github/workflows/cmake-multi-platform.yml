@@ -2,9 +2,9 @@ name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
   workflow_dispatch:   # This line allows manual triggering of the action
 
 env:
