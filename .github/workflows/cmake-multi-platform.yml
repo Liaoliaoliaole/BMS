@@ -44,6 +44,7 @@ jobs:
       run: |
         cd .\firmware\BMSServerApp
         $buildType = "${{ matrix.type }}"
+         $compilerPath = "C:\\gcc-arm\\bin\\arm-none-eabi-gcc.exe"
         if ($buildType -eq "Test") {
           cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
         } else {
