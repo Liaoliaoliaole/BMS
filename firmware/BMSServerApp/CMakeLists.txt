@@ -9,6 +9,9 @@ enable_language(ASM)
 # Specify the toolchain file
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain.cmake)
 
+# Option for TEST build
+option(TEST "Build with TEST mode enabled" OFF)
+
 # Include directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
@@ -21,6 +24,12 @@ set(STARTUP_FILE ${CMAKE_SOURCE_DIR}/startup/startup_stm32l152xe.s)
 
 # Create an executable
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${STARTUP_FILE})
+
+# Define TEST macro if TEST mode is enabled
+if(TEST)
+    message(STATUS "Building in TEST mode")
+    target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DTEST)
+endif()
 
 # Create a binary file after the executable is built
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD

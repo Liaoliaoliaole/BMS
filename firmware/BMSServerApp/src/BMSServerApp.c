@@ -10,10 +10,8 @@
 #include "utils.h"
 #include "adc.h"
 #include "adc_converter.h"
+#include "sensor_reader.h"
 #include "modbus.h"
-
-// Main sensor values buffer
-int16_t sensor_value[NUM_REGISTERS] = {0};
 
 /**
 **===========================================================================
@@ -34,12 +32,18 @@ int main(void) {
 	NVIC_EnableIRQ(USART2_IRQn); 	//enable interrupt in NVIC
 	__enable_irq();
 
+
 	mux_init();
+
+#ifdef TEST
+    mux_test();
+#endif
+
 	adc_init();
 
     while(1)
     {
-    	modbus_poll(sensor_value);
+    	modbus_poll();
     }
     return 0;
 }

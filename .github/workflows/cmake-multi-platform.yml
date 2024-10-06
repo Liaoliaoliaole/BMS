@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        type: [Debug, Release]
+        type: [Debug, Release, Test]
 
     steps:
     - name: Checkout code
@@ -37,7 +37,11 @@ jobs:
     - name: Build Project
       run: |
         cd .\firmware\BMSServerApp
-        cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+        if [ "${{ matrix.type }}" == "Test" ]; then
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
+        else
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+        fi
         cmake --build build
 
     - name: Convert ELF to BIN

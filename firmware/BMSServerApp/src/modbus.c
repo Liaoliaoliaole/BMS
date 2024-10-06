@@ -1,13 +1,13 @@
 #include <string.h>  // For memset function
-#include "modbus.h"
+#include <stdint.h>
 
 #include "bms_configuration.h"
 #include "crc.h"
 #include "mux.h"
 #include "usart2.h"
 #include "utils.h"
-#include "adc.h"
-#include "adc_converter.h"
+#include "sensor_reader.h"
+#include "system.h"
 #include "modbus.h"
 
 static uint8_t modbus_flag = 0;
@@ -15,46 +15,14 @@ static uint8_t received_slave_addr = 0;
 static uint8_t modbus_rx_buffer[BUFFER_SIZE] = {0};
 static int sensor_values_ready = 0;
 
-static void read_sensor_values(int16_t *sensors);
+
 static void handle_wrong_slave_address(void);
 static void parse_register_request(const uint8_t* modbus_rx_buffer, uint16_t* reg_addr, uint16_t* reg_quantity);
 static void construct_response_frame(const int16_t* sensor_values);
 
-void read_sensor_values(int16_t *sensors) {
-    //char buf[100];
-
-    // Read ADC value for cell voltage 1
-    const uint16_t adc_value = adc_read(0);
-    uint16_t cell_voltage = adc_convert_cell_voltage(adc_value);
-    //sprintf(buf, "Simulated cell voltage: %u mV, corresponding ADC value: %u\r\n", cell_voltage, adc_value);
-    //USART2_send_string(buf);
-
-    // Read ADC value for battery temperature
-    const uint16_t lm35_o = adc_read(1);
-    const uint16_t lm35_d = adc_read(2);
-    int16_t battery_temp = adc_convert_battery_temp(lm35_o,lm35_d);
-    //sprintf(buf, "Simulated Battery Temperature: %d degrees Celsius\r\n", battery_temp);
-    //USART2_send_string(buf); // Send battery temperature information
-
-    // Read ADC value for battery current
-    const uint16_t adc_c = adc_read(4);
-    uint16_t battery_current = adc_convert_battery_current(adc_c);
-    //sprintf(buf, "Simulated Battery Current: %u mA\r\n", battery_current);
-    //USART2_send_string(buf); // Send battery current information
-
-    // Send the sensor values to the sensors array
-    sensors[0] = battery_temp;    // Store battery temperature in sensors array
-    sensors[1] = battery_temp-12;        // Store ADC value for battery temperature
-    sensors[2] = cell_voltage;     // Store cell voltage in sensors array
-
-    sensors[3] = cell_voltage+1;
-    sensors[4] = cell_voltage-1;
-    sensors[5] = cell_voltage+2;
-    sensors[6] = battery_current;
-}
 
 // Main Modbus polling function
-void modbus_poll(int16_t* sensor_values) {
+void modbus_poll(void) {
     switch (modbus_flag) {
         case MODBUS_WAITING:  // Waiting for a valid frame
             memset(modbus_rx_buffer, 0, BUFFER_SIZE);
@@ -80,18 +48,16 @@ void modbus_poll(int16_t* sensor_values) {
 
                 if (reg_quantity > 0) {
                     if (!sensor_values_ready) {
-                        int16_t temp_values[NUM_REGISTERS] = {0};
-                        read_sensor_values(temp_values);  // Populate sensor values
-
-                        // Copy new values to sensor array
-                        for (uint8_t i = START_ADDR; i < NUM_REGISTERS; i++) {
-                            sensor_values[i] = temp_values[i];
-                        }
+                        #ifdef TEST
+                            read_sensor_values_mock((int16_t*)&sensor_data);  // Populate sensor values using mock function
+                        #else
+                            read_sensor_values((int16_t*)&sensor_data);       // Populate sensor values using actual function
+                        #endif
 
                         sensor_values_ready = 1;  // Mark as updated
                     }
 
-                    construct_response_frame(sensor_values);  // Send response
+                    construct_response_frame(&sensor_data);  // Send response
                 }
             }
             delay_ms(20);

@@ -1,61 +1,84 @@
 #include "bms_configuration.h"
-#include "adc.h"
 #include "stm32l1xx.h"
+#include "adc.h"
+#include "system.h"
 
-/*
-Initialize ADC.
-ADC channel:
-PA0 (A0)--Multiplexer--CH0
-PA1 (A1)--Temperature 1--CH1
-PA4 (A2)--Temperature 2--CH4
-PC1 (A4)--TODO:shunt resistor current?
-*/
 void adc_init(void) {
-	// Enable GPIOA and GPIOC
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN;
+    // Enable GPIOA and GPIOC
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN;
 
-	GPIOA->MODER |= (GPIO_MODE_ANALOG << (PA0 * 2))  // Set PA0 analog (A0)
-				 | (GPIO_MODE_ANALOG << (PA1 * 2))  // Set PA1 analog (A1)
-	             | (GPIO_MODE_ANALOG << (PA4 * 2));  // Set PA4 to analog mode (A2)
-	//GPIOC->MODER |= (GPIO_MODE_ANALOG << (PC1 * 2));   // Set PC1 to analog mode (A4)
+    // Set GPIOA pins PA0, PA1, PA4, PA5, and PA6 to analog mode
+    GPIOA->MODER |= (0x3 << (0 * 2))  // Set PA0 to analog mode (A0)
+                 | (0x3 << (1 * 2))  // Set PA1 to analog mode (A1)
+                 | (0x3 << (4 * 2))  // Set PA4 to analog mode (A2)
+                 | (0x3 << (5 * 2))  // Set PA5 to analog mode (A3)
+                 | (0x3 << (6 * 2)); // Set PA6 to analog mode (A5)
 
-	//setup ADC1. p272
-	RCC->APB2ENR |= 1 << 9;		//enable ADC1 clock,setting bit 9
-	ADC1->CR2 = 0;					//bit 1=0: Single conversion mode
+    // Set GPIOC pin PC1 to analog mode
+    GPIOC->MODER |= (0x3 << (1 * 2));   // Set PC1 to analog mode (A4)
 
-	// Set sampling time for channels
-	ADC1->SMPR2 = (ADC_SAMPLING_TIME_384CYC << 0) |  // CH 0
-				  (ADC_SAMPLING_TIME_384CYC << 3) |  // CH 1
-				  (ADC_SAMPLING_TIME_384CYC << 12);  // CH 4
+    // Enable ADC1 clock
+    RCC->APB2ENR |= (1 << 9);  // Set bit 9 to enable ADC1 clock
 
-	ADC1->CR1 &=  ~(0x3 << 24);		//resolution 12-bit
+    // Set ADC to single conversion mode
+    ADC1->CR2 = 0;  // Single conversion mode
+
+    // Set sampling time for channels 0, 1, 4, 5, 6, and 11
+    ADC1->SMPR2 = (0x7 << (0 * 3))  // CH0 (PA0)
+                | (0x7 << (1 * 3))  // CH1 (PA1)
+                | (0x7 << (4 * 3))  // CH4 (PA4)
+                | (0x7 << (5 * 3))  // CH5 (PA5)
+                | (0x7 << (6 * 3))  // CH6 (PA6)
+                | (0x7 << (11 * 3)); // CH11 (PC1)
+
+    // Set resolution to 12-bit
+    ADC1->CR1 &= ~(0x3 << 24);
+
+    // Enable the ADC
+    ADC1->CR2 |= (1 << 0);  // Set ADON bit to enable the ADC
 }
 
-/* uint16_t adc_read(const uint8_t adc_channel) {
-	ADC_DISABLE();
-	ADC1->SQR5 = adc_channel;      // Conversion sequence starts at selected channel
-	ADC_ENABLE();
-	ADC_START_CONVERSION();  // Start conversion
-	while (!(ADC1->SR & 2)){}  // Wait for conversion complete
-	uint16_t adc_value = ADC1->DR;     // Read conversion result
-	return adc_value;
-} */
 
-
-/*Mock ADC read*/
 uint16_t adc_read(const uint8_t adc_channel) {
+	ADC1->CR2 &= ~(1 << 0);  // Clear ADON bit to disable the ADC
+
+	// Set the channel to be read
+	ADC1->SQR3 = adc_channel;  // Set the selected channel in the regular sequence register
+
+	// Enable the ADC
+	ADC1->CR2 |= (1 << 0);  // Set ADON bit to enable the ADC
+
+	// Start the conversion
+	ADC1->CR2 |= (1 << 30);  // Set SWSTART bit to start the conversion
+
+	// Wait for the conversion to complete
+	while (!(ADC1->SR & (1 << 1)));  // Wait until EOC (End of Conversion) bit is set
+
+	// Read the conversion result
+	uint16_t adc_value = ADC1->DR;
+
+	return adc_value;
+}
+
+#if TEST
+// Mock ADC read function to simulate ADC readings
+uint16_t adc_read_mock(const uint8_t adc_channel) {
     // Simulated ADC values based on the selected channel.
     switch (adc_channel) {
         case 0: // CH0 - Simulate cell voltage measurement (PA0)
-            return 3000;  // Example ADC value for testing cell voltage(2.42V)
-        case 1: // CH1 - Simulate ADC input from LM35 (PA1) output
+            return 3000;  // Example ADC value for testing cell voltage (2.42V)
+        case 1: // CH1 - Simulate ADC input from temperature sensor 1 (PA1)
             return 1475;  // Example ADC value for mid-range temperature (1.197V for LM35)
-        case 2: // CH2 - Simulate ADC input from LM35 (PA1) diode
+        case 4: // CH4 - Simulate temperature sensor 2 measurement (PA4)
             return 1190;  // Example ADC value for mid-range temperature (0.965V for LM35)
-        case 4: // CH4 - Simulate shunt resistor current measurement (PA4)
+        case 5: // CH5 - Simulate shunt resistor current measurement (PA5)
             return 2500;  // Example ADC value for testing current measurement
+        case 6: // CH6 - Simulate flame sensor measurement (PA6)
+            return 1800;  // Example ADC value for flame sensor
+        case 11: // CH11 - Simulate future use measurement (PC1)
+            return 2000;  // Example ADC value for testing future use
         default:
             return 0;     // Default case if no valid channel is provided
     }
 }
-
+#endif
