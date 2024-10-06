@@ -42,10 +42,11 @@ jobs:
       shell: pwsh  # Use PowerShell Core to execute the script
       run: |
         cd .\firmware\BMSServerApp
-        if (${{ matrix.type }} -eq "Test") {
+        $buildType = "${{ matrix.type }}"
+        if ($buildType -eq "Test") {
           cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
         } else {
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="$buildType"
         }
         cmake --build build
 
