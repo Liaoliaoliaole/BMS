@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
+# Specify the toolchain file (should be before project())
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain.cmake)
+
 # Project name and version
 project(BMSServerApp VERSION 1.0)
 
 # Enable assembly language (for the startup file)
-enable_language(ASM)
-
-# Specify the toolchain file
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain.cmake)
+enable_language(C ASM)
 
 # Option for TEST build
 option(TEST "Build with TEST mode enabled" OFF)
@@ -17,6 +17,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include
 )
 
+# Source files
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.c)
 
 # Add startup assembly file
@@ -24,6 +25,10 @@ set(STARTUP_FILE ${CMAKE_SOURCE_DIR}/startup/startup_stm32l152xe.s)
 
 # Create an executable
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${STARTUP_FILE})
+
+# Linker script (optional, if you have one)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/linker_script.ld)
+target_link_options(${PROJECT_NAME}.elf PRIVATE "-T${LINKER_SCRIPT}")
 
 # Define TEST macro if TEST mode is enabled
 if(TEST)
