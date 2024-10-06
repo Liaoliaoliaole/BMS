@@ -38,6 +38,8 @@ jobs:
     - name: Verify GCC Installation
       shell: pwsh
       run: |
+        # Wait for PATH update to be applied
+        Get-Command arm-none-eabi-gcc -ErrorAction Stop
         arm-none-eabi-gcc --version
 
     - name: Install Ninja
@@ -83,7 +85,6 @@ jobs:
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Ninja build failed with exit code $LASTEXITCODE."
             exit $LASTEXITCODE
-        }
 
     - name: Convert ELF to BIN
       run: |
