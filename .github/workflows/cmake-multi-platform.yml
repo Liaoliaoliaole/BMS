@@ -9,9 +9,6 @@ on:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-  CMAKE_C_COMPILER: D:/a/BMS/BMS/gcc-arm/bin/arm-none-eabi-gcc.exe
-  CMAKE_CXX_COMPILER: D:/a/BMS/BMS/gcc-arm/bin/arm-none-eabi-g++.exe
-  PATH: D:/a/BMS/BMS/gcc-arm/bin:${{ env.PATH }}
 
 jobs:
   build:
@@ -35,9 +32,14 @@ jobs:
         mkdir gcc-arm
         # Extract the downloaded archive
         tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
+        # Manually set environment variable for compiler
+        $env:PATH = "D:\\a\\BMS\\BMS\\gcc-arm\\bin;" + $env:PATH
+        [System.Environment]::SetEnvironmentVariable('CC', 'D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-gcc.exe', 'Process')
+        [System.Environment]::SetEnvironmentVariable('CXX', 'D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-g++.exe', 'Process')
 
     - name: Verify GCC Installation
       run: |
+        $env:PATH = "D:\\a\\BMS\\BMS\\gcc-arm\\bin;" + $env:PATH
         arm-none-eabi-gcc --version
 
     - name: Install Ninja
@@ -51,10 +53,11 @@ jobs:
       run: |
         cd .\firmware\BMSServerApp
         $buildType = "${{ matrix.type }}"
+        $compilerPath = "D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-gcc.exe"
         if ($buildType -eq "Test") {
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_C_COMPILER="$compilerPath" -DCMAKE_CXX_COMPILER="D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-g++.exe" -DTEST=ON
         } else {
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="$buildType"
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="$buildType" -DCMAKE_C_COMPILER="$compilerPath" -DCMAKE_CXX_COMPILER="D:\\a\\BMS\\BMS\\gcc-arm\\bin\\arm-none-eabi-g++.exe"
         }
         cmake --build build
 
