@@ -31,6 +31,7 @@ jobs:
         tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
         echo "Adding GCC to PATH"
         echo "C:\\gcc-arm\\bin" >> $env:GITHUB_PATH
+        $env:PATH = "C:\\gcc-arm\\bin;" + $env:PATH
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v4
