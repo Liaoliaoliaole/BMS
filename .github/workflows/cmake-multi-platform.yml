@@ -32,8 +32,8 @@ jobs:
         mkdir gcc-arm
         # Extract the downloaded archive
         tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
-        # Add GCC to PATH for subsequent steps
-        echo "##[add-path]D:\\a\\BMS\\BMS\\gcc-arm\\bin"
+        # Add GCC to PATH for subsequent steps using environment files
+        echo "D:\\a\\BMS\\BMS\\gcc-arm\\bin" >> $GITHUB_PATH
 
     - name: Verify GCC Installation
       shell: pwsh
