@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        type: [Debug, Release, Test]  # Added "Test" for testing build
+        type: [Debug, Release, Test]
 
     steps:
     - name: Checkout code
