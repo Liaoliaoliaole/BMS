@@ -24,23 +24,10 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install arm-none-eabi-gcc
-      run: |
-        # Download the GCC toolchain
-        curl -L -o gcc-arm-none-eabi.zip https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip
-        # Create the directory for extraction
-        mkdir gcc-arm
-        # Extract the downloaded archive
-        tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
-        # Add GCC to PATH for subsequent steps using environment files
-        echo "D:\\a\\BMS\\BMS\\gcc-arm\\bin" >> $GITHUB_PATH
-
-    - name: Verify GCC Installation
-      shell: pwsh
-      run: |
-        # Wait for PATH update to be applied
-        Get-Command arm-none-eabi-gcc -ErrorAction Stop
-        arm-none-eabi-gcc --version
+    - name: arm-none-eabi-gcc
+      uses: ryanwinter/arm-none-eabi-gcc@master
+      with:
+          release: '10.3-2021.10'
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v4
@@ -49,42 +36,14 @@ jobs:
       run: cmake --version
 
     - name: Build Project
-      shell: pwsh  # Use PowerShell Core to execute the script
       run: |
-        # Define project directory
-        $projectDir = ".\firmware\BMSServerApp"
-        $buildDir = "$projectDir\build"
-
-        # Check if build directory exists, if not, create it
-        if (-Not (Test-Path $buildDir)) {
-            mkdir $buildDir
-        }
-
-        # Change directory to the build directory
-        cd $buildDir
-
-        # Construct the CMake command based on the build type
-        $cmakeCommand = "cmake -DCMAKE_TOOLCHAIN_FILE=""../toolchain.cmake"" -G ""Ninja"" .."
-        
-        # Add TEST flag if the matrix type is Test
-        if ("${{ matrix.type }}" -eq "Test") {
-            $cmakeCommand += " -DTEST=ON"
-        } else {
-            $cmakeCommand += " -DCMAKE_BUILD_TYPE=${{ matrix.type }}"
-        }
-
-        # Run CMake configuration
-        $cmakeResult = Invoke-Expression $cmakeCommand
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "CMake configuration failed with exit code $LASTEXITCODE."
-            exit $LASTEXITCODE
-        }
-
-        # Run the Ninja build
-        ninja
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Ninja build failed with exit code $LASTEXITCODE."
-            exit $LASTEXITCODE
+        cd .\firmware\BMSServerApp
+        if [ "${{ matrix.type }}" == "Test" ]; then
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
+        else
+          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+        fi
+        cmake --build build
 
     - name: Convert ELF to BIN
       run: |
