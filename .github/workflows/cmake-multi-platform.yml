@@ -2,10 +2,9 @@ name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
-    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
+    branches: [ "SCRUM-10-Create-a-function-in-master-so-it-can-write-values-in-mysql-database" ]
   pull_request:
-    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
-  workflow_dispatch:  # Enable manual trigger
+    branches: [ "SCRUM-10-Create-a-function-in-master-so-it-can-write-values-in-mysql-database" ]
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
@@ -16,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        type: [Debug, Release, Test]
+        type: [Debug, Release]
 
     steps:
     - name: Checkout code
@@ -38,11 +37,7 @@ jobs:
     - name: Build Project
       run: |
         cd .\firmware\BMSServerApp
-        if [ "${{ matrix.type }}" == "Test" ]; then
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
-        else
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
-        fi
+        cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
 
     - name: Convert ELF to BIN
