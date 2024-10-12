@@ -35,15 +35,14 @@ void USART2_write(char data)
 }
 
 void USART2_send_string(const char *string) {
-    size_t len = strlen(string);
-    for (; len > 0; len--, string++) {
-        USART2_write(*string);
+    while (*string) {
+        USART2_write(*string++); // Send each character one by one
     }
 }
 
 void USART2_send_data(const void *data, size_t len) {
-    char *d = (char *)data;
-    for (; len > 0; len--, d++) {
-        USART2_write(*d);
+    const uint8_t *d = (const uint8_t *)data;
+    for (size_t i = 0; i < len; i++) {
+        USART2_write(d[i]); // Send each byte of data
     }
 }
