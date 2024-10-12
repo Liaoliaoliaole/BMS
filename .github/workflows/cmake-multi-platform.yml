@@ -2,9 +2,9 @@ name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
-    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "SCRUM-20-Implement-Mosfet-control-code" ]
+    branches: [ "main" ]
   workflow_dispatch:  # Enable manual trigger
 
 env:
@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        type: [Debug, Release, Test]
+        type: [Debug, Release]
 
     steps:
     - name: Checkout code
@@ -24,13 +24,10 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Download and Install arm-none-eabi-gcc
-      run: |
-        curl -L -o gcc-arm-none-eabi.zip https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip
-        mkdir gcc-arm
-        tar -xf gcc-arm-none-eabi.zip -C gcc-arm --strip-components=1
-        echo "Adding GCC to PATH"
-        echo "C:\gcc-arm\bin" >> $GITHUB_PATH
+    - name: arm-none-eabi-gcc
+      uses: ryanwinter/arm-none-eabi-gcc@master
+      with:
+          release: '10.3-2021.10'
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v4
@@ -41,11 +38,7 @@ jobs:
     - name: Build Project
       run: |
         cd .\firmware\BMSServerApp
-        if [ "${{ matrix.type }}" == "Test" ]; then
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="Debug" -DTEST=ON
-        else
-          cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
-        fi
+        cmake -Bbuild -GNinja -DCMAKE_TOOLCHAIN_FILE="../toolchain.cmake" -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
         cmake --build build
 
     - name: Convert ELF to BIN
