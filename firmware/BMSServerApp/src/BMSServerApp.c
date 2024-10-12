@@ -38,8 +38,9 @@ int main(void) {
 	mosfet_init();
 
 #ifdef TEST
+	// This test blinks on board LED to check mutiplexer channel selection succedded.
     mux_test();
-    test_mosfet_control_logic();
+    mosfet_control_logic(sensor_data);
 #endif
 
     while(1)

@@ -1,9 +1,8 @@
-#include "stm32l1xx.h"
+
 #include "bms_configuration.h"
 #include "system.h"
-#include "utils.h"
-#include "usart2.h"
 #include "mosfet_control.h"
+#include "mock_hardware.h"
 
 #include <time.h>
 #include <math.h>
@@ -17,9 +16,6 @@ static bool short_circuit_active = false;
 static bool overtemperature_active = false;
 static bool undertemperature_active = false;
 static time_t last_switch_time = 0;
-static float soc = 50.0f; // Initialize to 50% for simplicity
-static float previous_soc = 50.0f;
-static time_t last_soc_update_time = 0;
 
 void reset_mosfet_control_logic() {
     previous_voltage_state = STATE_NORMAL_VOLTAGE;
@@ -56,22 +52,19 @@ void mosfet_control_logic(sensor_values_t sensor_values) {
     time_t current_time = get_current_time_ms();
     bool debounce_passed = (current_time - last_switch_time) >= DEBOUNCE_DELAY_MS;
 
-    // Calculate total battery voltage TODO maybe use later?
-    //float total_battery_voltage = calculate_total_voltage(sensor_values.cell_voltage, 4);
+    // Calculate total battery voltage
+    float total_battery_voltage = calculate_total_voltage(sensor_values.cell_voltage, 4);
 
     // Calculate currents (convert mA to A)
     float charge_current = sensor_values.battery_current_charge / 1000.0f;
     float discharge_current = sensor_values.battery_current_discharge / 1000.0f;
 
-    // Use the higher of charge or discharge current for SoC calculation and protections
-    float current = fmaxf(charge_current, discharge_current);
-
-    update_soc(charge_current , current_time);
-
     // Determine if the battery is charging or discharging
-    bool charging = is_charging();
-    bool discharging = is_discharging();
+    bool charging = is_charging(charge_current);
+    bool discharging = is_discharging(discharge_current);
 
+    // Use the higher of charge or discharge current for protections
+    float current = fmaxf(fabsf(charge_current), fabsf(discharge_current));
 
     // Get temperature (assume battery_temperature is in degrees Celsius)
     float temperature = sensor_values.battery_temperature;
@@ -96,22 +89,8 @@ void mosfet_control_logic(sensor_values_t sensor_values) {
     }
 }
 
-bool is_charging() {
-    // If current SoC is greater than previous SoC, then it's charging
-    bool charging = (soc > previous_soc);
-    previous_soc = soc; // Update the previous SoC
-    return charging;
-}
-
-bool is_discharging() {
-    // If current SoC is less than previous SoC, then it's discharging
-    bool discharging = (soc < previous_soc);
-    previous_soc = soc; // Update the previous SoC
-    return discharging;
-}
-
 // Check for short-circuit condition
-bool check_short_circuit(float current, uint32_t current_time) {
+static bool check_short_circuit(float current, uint32_t current_time) {
     if (current >= SHORT_CIRCUIT_THRESHOLD) {
         if (!short_circuit_active) {
             short_circuit_active = true;
@@ -130,7 +109,7 @@ bool check_short_circuit(float current, uint32_t current_time) {
 }
 
 // Check for overcurrent condition
-bool check_overcurrent(float current, bool charging, bool discharging, uint32_t current_time) {
+static bool check_overcurrent(float current, bool charging, bool discharging, uint32_t current_time) {
     if (charging && current >= OVERCURRENT_THRESHOLD) {
         if (!overcurrent_active) {
             overcurrent_active = true;
@@ -156,7 +135,7 @@ bool check_overcurrent(float current, bool charging, bool discharging, uint32_t 
 }
 
 // Check for body diode protection
-bool check_body_diode_protection(float current, uint32_t current_time) {
+static bool check_body_diode_protection(float current, uint32_t current_time) {
     if (current >= HIGH_CURRENT_THRESHOLD) {
         if (!overcurrent_active) {
             overcurrent_active = true;
@@ -181,7 +160,7 @@ bool check_body_diode_protection(float current, uint32_t current_time) {
 }
 
 // Check for temperature protection
-bool check_temperature_protection(float temperature, uint32_t current_time) {
+static bool check_temperature_protection(float temperature, uint32_t current_time) {
 	static uint32_t recovery_start_time = 0;
 
     if (temperature >= OVER_TEMPERATURE_THRESHOLD) {
@@ -217,7 +196,7 @@ bool check_temperature_protection(float temperature, uint32_t current_time) {
 }
 
 // Check voltage state based on cell voltages
-voltage_state_t check_voltage_state(sensor_values_t sensor_values) {
+static voltage_state_t check_voltage_state(sensor_values_t sensor_values) {
     bool cell_overvoltage = false;
     bool cell_undervoltage = false;
     for (int i = 0; i < 4; i++) {
@@ -242,7 +221,7 @@ voltage_state_t check_voltage_state(sensor_values_t sensor_values) {
 }
 
 // Update MOSFET states based on voltage state
-void update_mosfet_states(voltage_state_t current_voltage_state, uint32_t current_time) {
+static void update_mosfet_states(voltage_state_t current_voltage_state, uint32_t current_time) {
     switch (current_voltage_state) {
         case STATE_LOW_VOLTAGE:
             // Voltage too low: allow charging only
@@ -297,38 +276,3 @@ void set_discharge_mosfet(mosfet_state_t state) {
         USART2_send_string("Setting Discharge MOSFET: OFF\n\r");
     }
 }
-
-// Update State of Charge (SoC)
-void update_soc(float current, uint32_t current_time) {
-    uint32_t time_delta = current_time - last_soc_update_time;
-
-    // Update the SOC at a regular interval
-    if (time_delta >= SOC_UPDATE_INTERVAL_MS) {
-        // Coulomb counting: delta_SOC = (current * time) / battery_capacity
-        // Assume battery capacity is 10 Ah for simplicity
-        const float battery_capacity = 10.0f; // Ampere-hours
-
-        // Calculate delta SoC
-        float delta_soc = (current * (time_delta / 3600000.0f)) / battery_capacity; // Convert ms to hours
-
-        // Update the SoC
-        soc += delta_soc;
-
-        // Bound SoC between 0% and 100%
-        if (soc > 100.0f) {
-            soc = 100.0f;
-        } else if (soc < 0.0f) {
-            soc = 0.0f;
-        }
-
-        // Update the last update time
-        last_soc_update_time = current_time;
-
-        // Debug message
-        char buffer[100];
-        sprintf(buffer, "SoC updated: %.2f%%\n\r", soc);
-        USART2_send_string(buffer);
-    }
-}
-
-

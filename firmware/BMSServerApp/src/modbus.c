@@ -18,7 +18,7 @@ static int sensor_values_ready = 0;
 
 static void handle_wrong_slave_address(void);
 static void parse_register_request(const uint8_t* modbus_rx_buffer, uint16_t* reg_addr, uint16_t* reg_quantity);
-static void construct_response_frame(const int16_t* sensor_values);
+static void construct_response_frame(const sensor_values_t* sensor_data);
 
 
 // Main Modbus polling function
@@ -48,6 +48,7 @@ void modbus_poll(void) {
 
                 if (reg_quantity > 0) {
                     if (!sensor_values_ready) {
+
                         #ifdef TEST
                             read_sensor_values_mock((int16_t*)&sensor_data);  // Populate sensor values using mock function
                         #else
@@ -114,7 +115,8 @@ static void parse_register_request(const uint8_t* modbus_rx_buffer, uint16_t* re
 }
 
 // Construct and send the Modbus response frame
-static void construct_response_frame(const int16_t* sensor_values) {
+// Construct and send the Modbus response frame
+static void construct_response_frame(const sensor_values_t* sensor_data) {
     uint8_t response_length = RESPONSE_BYTE_COUNT + 5;  // Total response length (data + CRC + header)
     uint8_t response_frame[RESPONSE_BYTE_COUNT + 5] = {0};
 
@@ -123,10 +125,30 @@ static void construct_response_frame(const int16_t* sensor_values) {
     response_frame[2] = RESPONSE_BYTE_COUNT;  // Byte count
 
     // Fill the response with sensor values (high and low bytes)
-    for (uint8_t i = 0; i < NUM_REGISTERS; i++) {
-        response_frame[2 * i + 3] = (sensor_values[i] >> 8) & 0xFF;  // High byte
-        response_frame[2 * i + 4] = sensor_values[i] & 0xFF;         // Low byte
+    // Note: NUM_REGISTERS is assumed to be the correct value based on response data size
+    uint8_t index = 3;  // Start filling from the 4th byte
+
+    // Populate response with battery temperature values
+    response_frame[index++] = (sensor_data->battery_temperature >> 8) & 0xFF;  // High byte
+    response_frame[index++] = sensor_data->battery_temperature & 0xFF;         // Low byte
+
+    response_frame[index++] = (sensor_data->battery_temperature_alt >> 8) & 0xFF;  // High byte
+    response_frame[index++] = sensor_data->battery_temperature_alt & 0xFF;         // Low byte
+
+    // Populate response with cell voltages (4 cells)
+    for (int i = 0; i < 4; i++) {
+        response_frame[index++] = (sensor_data->cell_voltage[i] >> 8) & 0xFF;  // High byte
+        response_frame[index++] = sensor_data->cell_voltage[i] & 0xFF;         // Low byte
     }
+
+    // Populate response with battery current values
+    response_frame[index++] = (sensor_data->battery_current_charge >> 8) & 0xFF;  // High byte
+    response_frame[index++] = sensor_data->battery_current_charge & 0xFF;         // Low byte
+
+    response_frame[index++] = (sensor_data->battery_current_discharge >> 8) & 0xFF;  // High byte
+    response_frame[index++] = sensor_data->battery_current_discharge & 0xFF;         // Low byte
+
+    // Note: Flame sensor value is omitted based on the request to drop this sensor.
 
     // Calculate and append CRC to the response
     uint16_t response_crc = CRC16(response_frame, response_length - 2);
@@ -140,4 +162,5 @@ static void construct_response_frame(const int16_t* sensor_values) {
 
     delay_ms(10);  // Allow time for transmission
 }
+
 

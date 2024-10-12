@@ -2,7 +2,6 @@
 #include "stm32l1xx.h"
 #include "adc.h"
 #include "system.h"
-
 void adc_init(void) {
     // Enable GPIOA and GPIOC
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN;
@@ -23,13 +22,16 @@ void adc_init(void) {
     // Set ADC to single conversion mode
     ADC1->CR2 = 0;  // Single conversion mode
 
-    // Set sampling time for channels 0, 1, 4, 5, 6, and 11
+    // Set sampling time for channels 0, 1, 4, 5, 6
     ADC1->SMPR2 = (0x7 << (0 * 3))  // CH0 (PA0)
                 | (0x7 << (1 * 3))  // CH1 (PA1)
                 | (0x7 << (4 * 3))  // CH4 (PA4)
                 | (0x7 << (5 * 3))  // CH5 (PA5)
-                | (0x7 << (6 * 3))  // CH6 (PA6)
-                | (0x7 << (11 * 3)); // CH11 (PC1)
+                | (0x7 << (6 * 3)); // CH6 (PA6)
+
+    // Set sampling time for channel 11 separately because it's outside the range of the 32-bit SMPR2 register
+    // In STM32, SMPR1 is used for channels from 10 to 18
+    ADC1->SMPR1 = (0x7 << ((11 - 10) * 3));  // CH11 (PC1)
 
     // Set resolution to 12-bit
     ADC1->CR1 &= ~(0x3 << 24);
