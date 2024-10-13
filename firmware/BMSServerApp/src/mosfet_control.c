@@ -8,28 +8,27 @@
 #include <time.h>
 #include <math.h>
 
-// File-scope static variables for the control logic state
-static voltage_state_t previous_voltage_state = STATE_NORMAL_VOLTAGE;
+int charge_mosfet_pin_state = 0;
+int discharge_mosfet_pin_state = 0;
+
+static system_state_t previous_system_state = STATE_BOTH_OFF;
 static mosfet_state_t previous_charge_mosfet_state = MOSFET_OFF;
 static mosfet_state_t previous_discharge_mosfet_state = MOSFET_OFF;
-static bool overcurrent_active = false;
-static bool short_circuit_active = false;
-static bool overtemperature_active = false;
-static bool undertemperature_active = false;
+
+static uint8_t fault_bitmask = 0x00;
 static time_t last_switch_time = 0;
-static float soc = 50.0f; // Initialize to 50% for simplicity
-static float previous_soc = 50.0f;
-static time_t last_soc_update_time = 0;
+time_t current_mock_time = 0;
 
 void reset_mosfet_control_logic() {
-    previous_voltage_state = STATE_NORMAL_VOLTAGE;
     previous_charge_mosfet_state = MOSFET_OFF;
     previous_discharge_mosfet_state = MOSFET_OFF;
-    overcurrent_active = false;
-    short_circuit_active = false;
-    overtemperature_active = false;
-    undertemperature_active = false;
+
+    fault_bitmask = 0x00;
+
     last_switch_time = get_current_time_ms();
+
+    set_charge_mosfet(MOSFET_OFF);
+    set_discharge_mosfet(MOSFET_OFF);
 }
 
 // Initialize MOSFET GPIO pins
@@ -56,224 +55,173 @@ void mosfet_control_logic(sensor_values_t sensor_values) {
     time_t current_time = get_current_time_ms();
     bool debounce_passed = (current_time - last_switch_time) >= DEBOUNCE_DELAY_MS;
 
-    // Calculate total battery voltage TODO maybe use later?
-    //float total_battery_voltage = calculate_total_voltage(sensor_values.cell_voltage, 4);
+    // Use the higher of charge or discharge current for protections
+    float current_max = fmaxf(sensor_values.battery_current_charge, sensor_values.battery_current_discharge);
+    float temperature_max = fmaxf(sensor_values.battery_temperature, sensor_values.battery_temperature_alt);
+    float temperature_min = fminf(sensor_values.battery_temperature, sensor_values.battery_temperature_alt);
 
-    // Calculate currents (convert mA to A)
-    float charge_current = sensor_values.battery_current_charge / 1000.0f;
-    float discharge_current = sensor_values.battery_current_discharge / 1000.0f;
+    // Update fault flags based on sensor values
+    check_overcurrent(current_max, current_time);
+    check_body_diode_protection(current_max, current_time);
+    check_over_temperature_protection(temperature_max, current_time);
+    check_low_temperature_protection(temperature_min, current_time);
+    check_voltage_protection(sensor_values.cell_voltage);
 
-    // Use the higher of charge or discharge current for SoC calculation and protections
-    float current = fmaxf(charge_current, discharge_current);
+    // Determine system state based on all available sensor data
+    system_state_t current_system_state = determine_system_state();
 
-    update_soc(charge_current , current_time);
-
-    // Determine if the battery is charging or discharging
-    bool charging = is_charging();
-    bool discharging = is_discharging();
-
-
-    // Get temperature (assume battery_temperature is in degrees Celsius)
-    float temperature = sensor_values.battery_temperature;
-
-    // Perform protection checks
-    if (check_short_circuit(current, current_time)) return;
-    if (check_overcurrent(current, charging, discharging, current_time)) return;
-    if (check_body_diode_protection(current, current_time)) return;
-    if (check_temperature_protection(temperature, current_time)) return;
-
-    // Voltage-based logic
-    if (debounce_passed && !overcurrent_active && !short_circuit_active && !overtemperature_active) {
-        voltage_state_t current_voltage_state = check_voltage_state(sensor_values);
-        if (current_voltage_state != previous_voltage_state) {
-            update_mosfet_states(current_voltage_state, current_time);
-            previous_voltage_state = current_voltage_state;
+    // Update MOSFET states if debounce has passed and there are no active faults
+    if (debounce_passed) {
+        if (current_system_state != previous_system_state) {
+            update_mosfet_states(current_system_state, current_time);
+            previous_system_state = current_system_state;
         }
     } else {
-        // Debounce not passed or fault active; maintain previous states
-        set_charge_mosfet(previous_charge_mosfet_state);
-        set_discharge_mosfet(previous_discharge_mosfet_state);
+        if (previous_charge_mosfet_state != charge_mosfet_pin_state) {
+            set_charge_mosfet(previous_charge_mosfet_state);
+        }
+        if (previous_discharge_mosfet_state != discharge_mosfet_pin_state) {
+            set_discharge_mosfet(previous_discharge_mosfet_state);
+        }
     }
 }
 
-bool is_charging() {
-    // If current SoC is greater than previous SoC, then it's charging
-    bool charging = (soc > previous_soc);
-    previous_soc = soc; // Update the previous SoC
-    return charging;
-}
+// Interrupt service routine for short-circuit protection
+void short_circuit_isr() {
+    // Set the fault bit for short-circuit detection immediately
+    fault_bitmask |= (1 << 0); // Set bit 0 for short-circuit
+    USART2_send_string("Short-circuit detected. Setting fault flag via interrupt.\n\r");
 
-bool is_discharging() {
-    // If current SoC is less than previous SoC, then it's discharging
-    bool discharging = (soc < previous_soc);
-    previous_soc = soc; // Update the previous SoC
-    return discharging;
-}
-
-// Check for short-circuit condition
-bool check_short_circuit(float current, uint32_t current_time) {
-    if (current >= SHORT_CIRCUIT_THRESHOLD) {
-        if (!short_circuit_active) {
-            short_circuit_active = true;
-            USART2_send_string("Short-circuit detected. Turning off both MOSFETs.\n\r");
-            set_charge_mosfet(MOSFET_OFF);
-            set_discharge_mosfet(MOSFET_OFF);
-            previous_charge_mosfet_state = MOSFET_OFF;
-            previous_discharge_mosfet_state = MOSFET_OFF;
-            last_switch_time = current_time;
-        }
-        return true; // Fault active
-    } else {
-        short_circuit_active = false;
-        return false;
-    }
+    // Immediately turn off both MOSFETs for safety
+    set_charge_mosfet(MOSFET_OFF);
+    set_discharge_mosfet(MOSFET_OFF);
+    previous_charge_mosfet_state = MOSFET_OFF;
+    previous_discharge_mosfet_state = MOSFET_OFF;
 }
 
 // Check for overcurrent condition
-bool check_overcurrent(float current, bool charging, bool discharging, uint32_t current_time) {
-    if (charging && current >= OVERCURRENT_THRESHOLD) {
-        if (!overcurrent_active) {
-            overcurrent_active = true;
-            USART2_send_string("Charging overcurrent detected. Disabling charging.\n\r");
-            set_charge_mosfet(MOSFET_OFF);
-            previous_charge_mosfet_state = MOSFET_OFF;
-            last_switch_time = current_time;
-        }
-        return true; // Fault active
-    } else if (discharging && current >= OVERCURRENT_THRESHOLD) {
-        if (!overcurrent_active) {
-            overcurrent_active = true;
-            USART2_send_string("Discharging overcurrent detected. Disabling discharging.\n\r");
-            set_discharge_mosfet(MOSFET_OFF);
-            previous_discharge_mosfet_state = MOSFET_OFF;
-            last_switch_time = current_time;
-        }
-        return true; // Fault active
+void check_overcurrent(float current_max, time_t current_time) {
+    if (current_max >= OVERCURRENT_THRESHOLD) {
+        fault_bitmask |= (1 << 1); // Set bit 1 for overcurrent
+        USART2_send_string("Overcurrent detected. Setting fault flag.\n\r");
     } else {
-        overcurrent_active = false;
-        return false;
+        fault_bitmask &= ~(1 << 1); // Clear bit 1
     }
 }
 
 // Check for body diode protection
-bool check_body_diode_protection(float current, uint32_t current_time) {
+void check_body_diode_protection(float current, time_t current_time) {
     if (current >= HIGH_CURRENT_THRESHOLD) {
-        if (!overcurrent_active) {
-            overcurrent_active = true;
-            USART2_send_string("High current detected. Turning on both MOSFETs to prevent body diode conduction.\n\r");
-            set_charge_mosfet(MOSFET_ON);
-            set_discharge_mosfet(MOSFET_ON);
-            previous_charge_mosfet_state = MOSFET_ON;
-            previous_discharge_mosfet_state = MOSFET_ON;
-            last_switch_time = current_time;
-        }
-        return true; // Fault active
-    } else if (current >= LOW_CURRENT_THRESHOLD && current < HIGH_CURRENT_THRESHOLD) {
-        // Maintain previous states to prevent frequent switching
-        set_charge_mosfet(previous_charge_mosfet_state);
-        set_discharge_mosfet(previous_discharge_mosfet_state);
-        USART2_send_string("Maintaining previous MOSFET states due to intermediate current level.\n\r");
-        return true; // Fault active
+        fault_bitmask |= (1 << 2); // Set bit 2 for high threshold current
+        USART2_send_string("High current detected. Setting body diode protection flag.\n\r");
     } else {
-        overcurrent_active = false;
-        return false;
+        fault_bitmask &= ~(1 << 2); // Clear bit 2
     }
 }
 
 // Check for temperature protection
-bool check_temperature_protection(float temperature, uint32_t current_time) {
-	static uint32_t recovery_start_time = 0;
-
-    if (temperature >= OVER_TEMPERATURE_THRESHOLD) {
-        if (!overtemperature_active) {
-            overtemperature_active = true;
-            recovery_start_time = current_time;
-            USART2_send_string("Overtemperature detected. Disabling charging and discharging.\n\r");
-            set_charge_mosfet(MOSFET_OFF);
-            set_discharge_mosfet(MOSFET_OFF);
-            previous_charge_mosfet_state = MOSFET_OFF;
-            previous_discharge_mosfet_state = MOSFET_OFF;
-            last_switch_time = current_time;
-        }
-        return true; // Fault active
-    } else if (temperature <= UNDER_TEMPERATURE_THRESHOLD) {
-        if (!undertemperature_active) {
-            undertemperature_active = true;
-            USART2_send_string("Undertemperature detected. Disabling charging.\n\r");
-            set_charge_mosfet(MOSFET_OFF);
-            previous_charge_mosfet_state = MOSFET_OFF;
-            last_switch_time = current_time;
-        }
-        return false; // Discharging may continue
-    } else if (overtemperature_active || undertemperature_active) {
-        // Fault recovery logic: After a delay, allow normal operation again
-        if ((current_time - recovery_start_time) > DEBOUNCE_DELAY_MS) {
-            overtemperature_active = false;
-            undertemperature_active = false;
-            USART2_send_string("Temperature back to normal. Enabling normal operations.\n\r");
-        }
-    }
-    return false;
-}
-
-// Check voltage state based on cell voltages
-voltage_state_t check_voltage_state(sensor_values_t sensor_values) {
-    bool cell_overvoltage = false;
-    bool cell_undervoltage = false;
-    for (int i = 0; i < 4; i++) {
-        float cell_voltage = sensor_values.cell_voltage[i] / 1000.0f; // Convert mV to V
-        if (cell_voltage >= HIGH_VOLTAGE_THRESHOLD) {
-            cell_overvoltage = true;
-            break;
-        }
-        if (cell_voltage <= LOW_VOLTAGE_THRESHOLD) {
-            cell_undervoltage = true;
-            break;
-        }
-    }
-
-    if (cell_undervoltage) {
-        return STATE_LOW_VOLTAGE;
-    } else if (cell_overvoltage) {
-        return STATE_HIGH_VOLTAGE;
+void check_over_temperature_protection(float temperature, time_t current_time) {
+    if (temperature > OVER_TEMPERATURE_THRESHOLD) {
+    fault_bitmask |= (1 << 3); // Set bit 3 for over-temperature
+    USART2_send_string("Temperature out of range. Setting fault flag.\n\r");
     } else {
-        return STATE_NORMAL_VOLTAGE;
+    fault_bitmask &= ~(1 << 3); // Clear bit 3
     }
 }
 
-// Update MOSFET states based on voltage state
-void update_mosfet_states(voltage_state_t current_voltage_state, uint32_t current_time) {
-    switch (current_voltage_state) {
-        case STATE_LOW_VOLTAGE:
-            // Voltage too low: allow charging only
+void check_low_temperature_protection(float temperature, time_t current_time) {
+    if (temperature < UNDER_TEMPERATURE_THRESHOLD) {
+    fault_bitmask |= (1 << 3); // Set bit 3 for over-temperature
+    USART2_send_string("Temperature out of range. Setting fault flag.\n\r");
+    } else {
+    fault_bitmask &= ~(1 << 3); // Clear bit 3
+    }
+}
+
+// Check for voltage protection
+void check_voltage_protection(int16_t cell_voltage[4]) {
+    bool overvoltage = false;
+    bool undervoltage = false;
+
+    for (int i = 0; i < 4; i++) {
+        float voltage = cell_voltage[i]; // Convert mV to V
+        if (voltage >= HIGH_VOLTAGE_THRESHOLD) {
+            overvoltage = true;
+        }
+        if (voltage <= LOW_VOLTAGE_THRESHOLD) {
+            undervoltage = true;
+        }
+    }
+
+    if (overvoltage) {
+        fault_bitmask |= (1 << 4); // Set bit 4 for overvoltage
+        USART2_send_string("Overvoltage detected. Setting fault flag.\n\r");
+    } else {
+        fault_bitmask &= ~(1 << 4); // Clear bit 4
+    }
+
+    if (undervoltage) {
+        fault_bitmask |= (1 << 5); // Set bit 5 for undervoltage
+        USART2_send_string("Undervoltage detected. Setting fault flag.\n\r");
+    } else {
+        fault_bitmask &= ~(1 << 5); // Clear bit 5
+    }
+}
+
+// Determine the overall system state based on the fault bitmask
+system_state_t determine_system_state() {
+    if (fault_bitmask & ((1 << 1) | (1 << 3))) {
+        return STATE_BOTH_OFF; // Overcurrent and Overtemperature critical fault detected
+    }
+
+    if (fault_bitmask & (1 << 2)) {
+        return STATE_NORMAL_OPERATION; // High current (body diode protection)
+    }
+
+    if (fault_bitmask & (1 << 5)) {
+        return STATE_CHARGE_ONLY; // Undervoltage detected, only allow charging
+    }
+
+    if (fault_bitmask & (1 << 4)) {
+        return STATE_DISCHARGE_ONLY; // Overvoltage detected, only allow discharging
+    }
+
+    return STATE_NORMAL_OPERATION; // No faults detected
+}
+
+// Update MOSFET states based on the overall system state
+void update_mosfet_states(system_state_t system_state, uint32_t current_time) {
+    switch (system_state) {
+        case STATE_NORMAL_OPERATION:
+            set_charge_mosfet(MOSFET_ON);
+            set_discharge_mosfet(MOSFET_ON);
+            USART2_send_string("NORMAL_OPERATION: Charge ON, Discharge ON.\n\r");
+            break;
+
+        case STATE_CHARGE_ONLY:
             set_charge_mosfet(MOSFET_ON);
             set_discharge_mosfet(MOSFET_OFF);
-            USART2_send_string("LOW_VOLTAGE: Charge ON, Discharge OFF.\n\r");
-            previous_charge_mosfet_state = MOSFET_ON;
-            previous_discharge_mosfet_state = MOSFET_OFF;
+            USART2_send_string("CHARGE_ONLY: Charge ON, Discharge OFF.\n\r");
             break;
 
-        case STATE_NORMAL_VOLTAGE:
-            // Normal voltage: allow charging and discharging
-            set_charge_mosfet(MOSFET_ON);
-            set_discharge_mosfet(MOSFET_ON);
-            USART2_send_string("NORMAL_VOLTAGE: Charge ON, Discharge ON.\n\r");
-            previous_charge_mosfet_state = MOSFET_ON;
-            previous_discharge_mosfet_state = MOSFET_ON;
-            break;
-
-        case STATE_HIGH_VOLTAGE:
-            // Voltage too high: disable charging
+        case STATE_DISCHARGE_ONLY:
             set_charge_mosfet(MOSFET_OFF);
             set_discharge_mosfet(MOSFET_ON);
-            USART2_send_string("HIGH_VOLTAGE: Charge OFF, Discharge ON.\n\r");
-            previous_charge_mosfet_state = MOSFET_OFF;
-            previous_discharge_mosfet_state = MOSFET_ON;
+            USART2_send_string("DISCHARGE_ONLY: Charge OFF, Discharge ON.\n\r");
+            break;
+
+        case STATE_BOTH_OFF:
+            set_charge_mosfet(MOSFET_OFF);
+            set_discharge_mosfet(MOSFET_OFF);
+            USART2_send_string("BOTH_OFF: Charge OFF, Discharge OFF.\n\r");
             break;
 
         default:
             break;
     }
+
+    previous_charge_mosfet_state = (system_state == STATE_NORMAL_OPERATION || system_state == STATE_CHARGE_ONLY) ? MOSFET_ON : MOSFET_OFF;
+    previous_discharge_mosfet_state = (system_state == STATE_NORMAL_OPERATION || system_state == STATE_DISCHARGE_ONLY) ? MOSFET_ON : MOSFET_OFF;
     last_switch_time = current_time;
 }
 
@@ -297,38 +245,3 @@ void set_discharge_mosfet(mosfet_state_t state) {
         USART2_send_string("Setting Discharge MOSFET: OFF\n\r");
     }
 }
-
-// Update State of Charge (SoC)
-void update_soc(float current, uint32_t current_time) {
-    uint32_t time_delta = current_time - last_soc_update_time;
-
-    // Update the SOC at a regular interval
-    if (time_delta >= SOC_UPDATE_INTERVAL_MS) {
-        // Coulomb counting: delta_SOC = (current * time) / battery_capacity
-        // Assume battery capacity is 10 Ah for simplicity
-        const float battery_capacity = 10.0f; // Ampere-hours
-
-        // Calculate delta SoC
-        float delta_soc = (current * (time_delta / 3600000.0f)) / battery_capacity; // Convert ms to hours
-
-        // Update the SoC
-        soc += delta_soc;
-
-        // Bound SoC between 0% and 100%
-        if (soc > 100.0f) {
-            soc = 100.0f;
-        } else if (soc < 0.0f) {
-            soc = 0.0f;
-        }
-
-        // Update the last update time
-        last_soc_update_time = current_time;
-
-        // Debug message
-        char buffer[100];
-        sprintf(buffer, "SoC updated: %.2f%%\n\r", soc);
-        USART2_send_string(buffer);
-    }
-}
-
-
