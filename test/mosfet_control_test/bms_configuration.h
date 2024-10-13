@@ -19,5 +19,3 @@
 
 #define DEBOUNCE_DELAY_MS 10                   // Milliseconds (reduced for testing)
 
-#define SOC_UPDATE_INTERVAL_MS 1000            // Update interval for SOC calculation in milliseconds
-#define MIN_CURRENT_THRESHOLD 0.01f            // Amperes
