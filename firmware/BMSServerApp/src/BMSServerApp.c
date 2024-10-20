@@ -14,6 +14,10 @@
 #include "mosfet_control.h"
 #include "modbus.h"
 
+#ifdef TEST
+#include "intergration_test.h"
+#endif
+
 /**
 **===========================================================================
 **
@@ -29,8 +33,9 @@ int main(void) {
 	SetSysClock();
 	SystemCoreClockUpdate();
 
-	USART2->CR1 |= 0x0020;			//enable RX interrupt
-	NVIC_EnableIRQ(USART2_IRQn); 	//enable interrupt in NVIC
+	USART2->CR1 |= 0x0020;			// Enable RX interrupt
+	NVIC_EnableIRQ(USART2_IRQn); 	// Enable interrupt in NVIC
+	NVIC_EnableIRQ(EXTI0_IRQn); // Enable EXTI0 interrupt
 	__enable_irq();
 
 	adc_init();
@@ -40,15 +45,15 @@ int main(void) {
 	sensor_values_t sensor_data;
 
 #ifdef TEST
-	// This test blinks on board LED to check mutiplexer channel selection succedded.
-    mux_test();
+	intergration_test(&sensor_data);
 #endif
 
     while(1)
     {
-    	read_all_sensors(&sensor_data);
-    	mosfet_control_logic(&sensor_data);
-    	modbus_poll(&sensor_data);
+    	//read_all_sensors(&sensor_data);
+    	//mosfet_control_logic(&sensor_data);
+    	//modbus_poll(&sensor_data);
+    	intergration_test(&sensor_data);
     }
     return 0;
 }

@@ -39,19 +39,19 @@ void adc_init(void)
     ADC1->CR1 &= ~(0x3 << 24);
 
     // Enable the ADC
-    ADC1->CR2 |= (1 << 0);  // Set ADON bit to enable the ADC
+    ADC1->CR2 |= ADC_CR2_ADON;  // Set ADON bit to enable the ADC
 }
 
 
 uint16_t adc_read(const uint8_t adc_channel)
 {
-	ADC1->CR2 &= ~(1 << 0);  // Clear ADON bit to disable the ADC
+	ADC1->CR2 &= ~ADC_CR2_ADON;  // Clear ADON bit to disable the ADC
 
 	// Set the channel to be read
 	ADC1->SQR3 = adc_channel;  // Set the selected channel in the regular sequence register
 
 	// Enable the ADC
-	ADC1->CR2 |= (1 << 0);  // Set ADON bit to enable the ADC
+	ADC1->CR2 |= ADC_CR2_ADON;  // Set ADON bit to enable the ADC
 
 	// Start the conversion
 	ADC1->CR2 |= (1 << 30);  // Set SWSTART bit to start the conversion
