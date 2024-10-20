@@ -10,7 +10,8 @@
 #include "system.h"
 #include "modbus.h"
 
-static uint8_t modbus_flag = 0;
+//  Modbus-related state and buffers encapsulated within modbus
+static uint8_t modbus_flag = 0; //Keeps track of the Modbus state
 static uint8_t received_slave_addr = 0;
 static uint8_t modbus_rx_buffer[BUFFER_SIZE] = {0};
 static int sensor_values_ready = 0;
@@ -22,7 +23,7 @@ static void construct_response_frame(const sensor_values_t* sensor_data);
 
 
 // Main Modbus polling function
-void modbus_poll(void) {
+void modbus_poll(sensor_values_t *sensor_data) {
     switch (modbus_flag) {
         case MODBUS_WAITING:  // Waiting for a valid frame
             memset(modbus_rx_buffer, 0, BUFFER_SIZE);
@@ -50,15 +51,15 @@ void modbus_poll(void) {
                     if (!sensor_values_ready) {
 
                         #ifdef TEST
-                            read_sensor_values_mock((int16_t*)&sensor_data);  // Populate sensor values using mock function
+                            read_sensor_values_mock((int16_t*)sensor_data);  // Populate sensor values using mock function
                         #else
-                            read_sensor_values((int16_t*)&sensor_data);       // Populate sensor values using actual function
+                            read_voltage_sensors(sensor_data);       // Populate sensor values using actual function
                         #endif
 
                         sensor_values_ready = 1;  // Mark as updated
                     }
 
-                    construct_response_frame(&sensor_data);  // Send response
+                    construct_response_frame(sensor_data);  // Send response
                 }
             }
             delay_ms(20);
@@ -114,7 +115,6 @@ static void parse_register_request(const uint8_t* modbus_rx_buffer, uint16_t* re
     }
 }
 
-// Construct and send the Modbus response frame
 // Construct and send the Modbus response frame
 static void construct_response_frame(const sensor_values_t* sensor_data) {
     uint8_t response_length = RESPONSE_BYTE_COUNT + 5;  // Total response length (data + CRC + header)

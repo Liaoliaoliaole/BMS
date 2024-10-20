@@ -20,7 +20,7 @@ typedef enum {
 
 void reset_mosfet_control_logic();
 void mosfet_init(void);
-void mosfet_control_logic(sensor_values_t sensor_values);
+void mosfet_control_logic(sensor_values_t* sensor_values);
 void short_circuit_isr();
 void check_overcurrent(float current_max, time_t current_time);
 void check_body_diode_protection(float current, time_t current_time);

@@ -8,9 +8,8 @@
 #include <time.h>
 #include <math.h>
 
-int charge_mosfet_pin_state = 0;
-int discharge_mosfet_pin_state = 0;
-
+static int charge_mosfet_pin_state = 0;
+static int discharge_mosfet_pin_state = 0;
 static system_state_t previous_system_state = STATE_BOTH_OFF;
 static mosfet_state_t previous_charge_mosfet_state = MOSFET_OFF;
 static mosfet_state_t previous_discharge_mosfet_state = MOSFET_OFF;
@@ -51,21 +50,21 @@ void mosfet_init(void) {
 }
 
 // Main MOSFET control logic function
-void mosfet_control_logic(sensor_values_t sensor_values) {
+void mosfet_control_logic(sensor_values_t* sensor_values) {
     time_t current_time = get_current_time_ms();
     bool debounce_passed = (current_time - last_switch_time) >= DEBOUNCE_DELAY_MS;
 
     // Use the higher of charge or discharge current for protections
-    float current_max = fmaxf(sensor_values.battery_current_charge, sensor_values.battery_current_discharge);
-    float temperature_max = fmaxf(sensor_values.battery_temperature, sensor_values.battery_temperature_alt);
-    float temperature_min = fminf(sensor_values.battery_temperature, sensor_values.battery_temperature_alt);
+    float current_max = fmaxf(sensor_values->battery_current_charge, sensor_values->battery_current_discharge);
+    float temperature_max = fmaxf(sensor_values->battery_temperature, sensor_values->battery_temperature_alt);
+    float temperature_min = fminf(sensor_values->battery_temperature, sensor_values->battery_temperature_alt);
 
     // Update fault flags based on sensor values
     check_overcurrent(current_max, current_time);
     check_body_diode_protection(current_max, current_time);
     check_over_temperature_protection(temperature_max, current_time);
     check_low_temperature_protection(temperature_min, current_time);
-    check_voltage_protection(sensor_values.cell_voltage);
+    check_voltage_protection(sensor_values->cell_voltage);
 
     // Determine system state based on all available sensor data
     system_state_t current_system_state = determine_system_state();

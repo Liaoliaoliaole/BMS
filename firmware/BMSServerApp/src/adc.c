@@ -2,7 +2,9 @@
 #include "stm32l1xx.h"
 #include "adc.h"
 #include "system.h"
-void adc_init(void) {
+
+void adc_init(void)
+{
     // Enable GPIOA and GPIOC
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN;
 
@@ -41,7 +43,8 @@ void adc_init(void) {
 }
 
 
-uint16_t adc_read(const uint8_t adc_channel) {
+uint16_t adc_read(const uint8_t adc_channel)
+{
 	ADC1->CR2 &= ~(1 << 0);  // Clear ADON bit to disable the ADC
 
 	// Set the channel to be read

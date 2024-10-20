@@ -12,10 +12,12 @@ typedef struct {
     int16_t flame_sensor;            // Flame sensor reading
 } sensor_values_t;
 
-// Declare the sensor data as an extern variable to use it globally
-extern sensor_values_t sensor_data;
+// Function prototypes
+void read_temperature_sensors(sensor_values_t *sensor_data);
+void read_current_sensors(sensor_values_t *sensor_data);
+void read_voltage_sensors(sensor_values_t *sensor_data);
+void read_all_sensors(sensor_values_t *sensor_data);
 
-void read_sensor_values(int16_t *sensors);
 
 #if TEST
 void read_sensor_values_mock(int16_t *sensors);
