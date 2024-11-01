@@ -9,7 +9,6 @@ typedef struct {
     uint16_t cell_voltage[4];              // Cell voltage readings for 4 cells in millivolts (always positive)
     uint16_t battery_current_charge;       // Battery current value (charge) in milliamperes (always positive)
     uint16_t battery_current_discharge;    // Battery current value (discharge) in milliamperes (always positive)
-    uint16_t flame_sensor;                 // Flame sensor reading (units depend on sensor specifics)
 } sensor_values_t;
 
 

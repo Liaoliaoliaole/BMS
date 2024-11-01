@@ -4,6 +4,7 @@
 #include "stm32l1xx.h"
 #include "system_clock.h"
 #include "bms_configuration.h"
+#include "system.h"
 #include "crc.h"
 #include "usart2.h"
 #include "utils.h"
@@ -13,10 +14,6 @@
 #include "mux.h"
 #include "mosfet_control.h"
 #include "modbus.h"
-
-#ifdef TEST
-#include "intergration_test.h"
-#endif
 
 /**
 **===========================================================================
@@ -44,16 +41,12 @@ int main(void) {
 
 	sensor_values_t sensor_data;
 
-#ifdef TEST
-	intergration_test(&sensor_data);
-#endif
-
     while(1)
     {
-    	//read_all_sensors(&sensor_data);
+    	read_all_sensors(&sensor_data);
+    	//check_deep_sleep_condition(&sensor_data);
     	//mosfet_control_logic(&sensor_data);
-    	//modbus_poll(&sensor_data);
-    	intergration_test(&sensor_data);
+    	modbus_poll(&sensor_data);
     }
     return 0;
 }

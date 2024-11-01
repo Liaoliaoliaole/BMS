@@ -55,7 +55,7 @@ uint16_t adc_convert_battery_current(const uint16_t adc_value){
 
     int32_t current_ma = (shunt_voltage_mv * 1000) / R_SHUNT; // R_SHUNT is in milliohms
 
-    current_ma = (current_ma * CURRENT_CALIBRATION_GAIN) / 1000 + CURRENT_CALIBRATION_OFFSET;
+    current_ma = (current_ma * CURRENT_CALIBRATION_GAIN) / 1000 + CURRENT_CALIBRATION_OFFSET / 1000;
 
     if (current_ma < 0) {
         current_ma = 0;

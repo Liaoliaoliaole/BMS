@@ -1,5 +1,6 @@
 #pragma once
 #include "stm32l1xx.h"
+#include "sensor_reader.h"
 
 #define HSI_VALUE    ((uint32_t)16000000)
 
@@ -49,3 +50,9 @@
 #define ADC_CHANNEL_SHUNT_CURRENT       		5  // PA5 (A3)  - Shunt Resistor Current Measurement - ADC Channel 5
 #define ADC_CHANNEL_FLAME_SENSOR        		6  // PA6 (A5)  - Flame Sensor                   - ADC Channel 6
 #define ADC_CHANNEL_FUTURE_USE         			11  // PC1 (A4)  - Future Use (e.g., Current Measurement) - ADC Channel 11
+
+extern uint8_t system_in_deep_sleep_mode; // 0: Awake, 1: Deep Sleep
+
+void enter_deep_sleep(void);
+void exit_deep_sleep(void);
+void check_deep_sleep_condition(sensor_values_t* sensor_values);

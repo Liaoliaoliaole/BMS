@@ -3,10 +3,6 @@
 #include "adc.h"
 #include "system.h"
 
-#ifdef TEST
-#include "intergration_test.h"
-#endif
-
 /**
  * @brief Initializes the GPIO pins used for multiplexer control.
  *
@@ -71,10 +67,6 @@ void mux_select(const uint32_t channel, uint32_t mux_select_pin_mask)
  */
 uint16_t read_mux_channel(uint32_t channel, uint32_t mux_select_pin_mask, uint32_t adc_channel)
 {
-#ifdef TEST
-	return get_mock_mux_output_value(channel, mux_select_pin_mask);
-#endif
-
 	mux_select(channel, mux_select_pin_mask);  // Select the appropriate MUX channel
 	uint16_t adc_value = adc_read(adc_channel);  // Read the ADC value from the selected channel
 	mux_reset(mux_select_pin_mask);  // Reset the MUX control pins
@@ -95,7 +87,7 @@ void mux_reset(uint32_t mux_select_pin_mask)
     while ((GPIOB->IDR) & (mux_select_pin_mask));
 }
 
-#ifdef TEST_HARDWARE
+#ifdef TEST
 /**
  * @brief Test function to validate multiplexer channel selection.
  *

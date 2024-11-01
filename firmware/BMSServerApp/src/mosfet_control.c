@@ -18,11 +18,8 @@ static uint8_t fault_bitmask = 0x00;
 static time_t last_switch_time = 0;
 time_t current_mock_time = 0;
 
-/**
- * @brief Resets the MOSFET control logic to initial states.
- *
- * This function resets the MOSFET states and clears any existing fault flags.
- */
+//Resets the MOSFET control logic to initial states.
+// This function resets the MOSFET states and clears any existing fault flags.
 void reset_mosfet_control_logic() {
     previous_charge_mosfet_state = MOSFET_OFF;
     previous_discharge_mosfet_state = MOSFET_OFF;
@@ -103,8 +100,11 @@ void EXTI0_IRQHandler(void) {
         // Clear the interrupt flag by writing 1 to it
         EXTI->PR |= (1 << 0);
 
-        // Call the short-circuit handler function
-        short_circuit_isr();
+        if (system_in_deep_sleep_mode) {
+            exit_deep_sleep();
+        } else {
+            short_circuit_isr();
+        }
     }
 }
 

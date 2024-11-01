@@ -3,7 +3,7 @@ import serial
 import crcmod.predefined
 
 # Initialize serial port
-port = serial.Serial('COM6', baudrate=9600, timeout=1, dsrdtr=False, bytesize=serial.EIGHTBITS)
+port = serial.Serial('COM7', baudrate=9600, timeout=1, dsrdtr=False, bytesize=serial.EIGHTBITS)
 
 # Calculate CRC
 def calculate_crc(data):
@@ -11,9 +11,9 @@ def calculate_crc(data):
     return crc16(data)
 
 # Send modbus request and receive data
-def modbus_request(port, register_count=7):
+def modbus_request(port, slave_addr=0x01, function_code=0x04, start_addr=0x00, register_count=8):
     # Send request for register values.
-    request = [0x01, 0x04, 0x00, 0x00, 0x00, register_count]
+    request = [slave_addr, function_code, (start_addr >> 8) & 0xFF, start_addr & 0xFF, (register_count >> 8) & 0xFF, register_count & 0xFF]
     crc = calculate_crc(bytearray(request))
     request += [crc & 0xFF, (crc >> 8) & 0xFF]  # Add CRC to the request
     print("Request:", request)
@@ -68,7 +68,8 @@ try:
             print(f"Voltage Cell 2: {values[3]} mV")
             print(f"Voltage Cell 3: {values[4]} mV")
             print(f"Voltage Cell 4: {values[5]} mV")
-            print(f"Current (Full): {values[6]} mA")
+            print(f"Current (Charge): {values[6]} mA")
+            print(f"Current (Discharge): {values[7]} mA")
             print("---------------------\n")
 
         time.sleep(0.5)  # Delay before the next request; adjust as necessary
