@@ -2,9 +2,9 @@ name: BMS_STM32L152RE Build Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "SCRUM-14-design-state-machine-integrated-with-mosfet-control-logic" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "SCRUM-14-design-state-machine-integrated-with-mosfet-control-logic" ]
   workflow_dispatch:  # Enable manual trigger
 
 env:

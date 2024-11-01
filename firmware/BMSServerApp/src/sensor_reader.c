@@ -1,70 +1,111 @@
 #include "sensor_reader.h"
 #include "adc.h"
 #include "adc_converter.h"
+#include "mux.h"
+#include "system.h"
+#include "utils.h"
 
-// Global variable to store sensor values
-sensor_values_t sensor_data;
+#define FILTER_LENGTH 5
 
-//TODO
-void read_sensor_values(int16_t *sensors) {
-    // Read ADC value for battery temperature
-    uint16_t lm35_o = adc_read(1);
-    uint16_t lm35_d = adc_read(4);
-    sensor_data.battery_temperature = adc_convert_battery_temp(lm35_o, lm35_d);
-    sensors[0] = sensor_data.battery_temperature;
-    sensors[1] = sensor_data.battery_temperature - 12;
+// Buffers to store raw ADC readings for filtering
+static int16_t temp_buffer_1[FILTER_LENGTH] = {0};
+static int16_t temp_buffer_2[FILTER_LENGTH] = {0};
+static uint16_t current_buffer_1[FILTER_LENGTH] = {0};
+static uint16_t current_buffer_2[FILTER_LENGTH] = {0};
+static uint16_t voltage_buffer_1[4][FILTER_LENGTH] = {0};
 
-    // Read ADC value for cell voltages
-    for (int i = 0; i < 4; i++) {
-        sensor_data.cell_voltage[i] = adc_convert_cell_voltage(adc_read(0));
-        sensors[2 + i] = sensor_data.cell_voltage[i];
-    }
-
-    // Read ADC value for battery current (charge)
-    uint16_t adc_c_charge = adc_read(5);
-    sensor_data.battery_current_charge = adc_convert_battery_current(adc_c_charge);
-    sensors[6] = sensor_data.battery_current_charge;
-
-    // Read ADC value for battery current (discharge)
-    uint16_t adc_c_discharge = adc_read(5);
-    sensor_data.battery_current_discharge = adc_convert_battery_current(adc_c_discharge);
-    sensors[7] = sensor_data.battery_current_discharge;
-
-    // Read ADC value for flame sensor
-    sensor_data.flame_sensor = adc_read(6);
-    sensors[8] = sensor_data.flame_sensor;
-}
-
-
-#if TEST
-void read_sensor_values_mock(int16_t *sensors) {
-    // Mock read ADC value for battery temperature
-    uint16_t lm35_o = adc_read_mock(1);
-    uint16_t lm35_d = adc_read_mock(2);
-    sensor_data.battery_temperature = adc_convert_battery_temp(lm35_o, lm35_d);
-    sensors[0] = sensor_data.battery_temperature;
-    sensors[1] = sensor_data.battery_temperature - 12;
-
-    // Mock read ADC value for cell voltages
-    for (int i = 0; i < 4; i++) {
-        sensor_data.cell_voltage[i] = adc_convert_cell_voltage(adc_read_mock(0));
-        sensors[2 + i] = sensor_data.cell_voltage[i];
-    }
-
-    // Mock read ADC value for battery current (charge)
-    uint16_t adc_c_charge = adc_read_mock(4);
-    sensor_data.battery_current_charge = adc_convert_battery_current(adc_c_charge);
-    sensors[6] = sensor_data.battery_current_charge;
-
-    // Mock read ADC value for battery current (discharge)
-    uint16_t adc_c_discharge = adc_read_mock(4);
-    sensor_data.battery_current_discharge = adc_convert_battery_current(adc_c_discharge);
-    sensors[7] = sensor_data.battery_current_discharge;
-
-    // Mock read ADC value for flame sensor
-    sensor_data.flame_sensor = adc_read_mock(6);
-    sensors[8] = sensor_data.flame_sensor;
-}
+void read_temperature_sensors(sensor_values_t *sensor_data) {
+    // Read temperature from the first LM35 sensor
+    uint16_t output_adc_1 = read_mux_channel(0, MUX_TEMP_SELECT_PIN_MASK, ADC_CHANNEL_TEMP_SENSOR); // Vout LM35 sensor 1
+    uint16_t diode_adc_1 = read_mux_channel(2, MUX_TEMP_SELECT_PIN_MASK, ADC_CHANNEL_TEMP_SENSOR); // Diode voltage LM35 sensor 1
+    for (int i = FILTER_LENGTH - 1; i > 0; i--) {
+		temp_buffer_1[i] = temp_buffer_1[i - 1];
+	}
+	temp_buffer_1[0] = adc_convert_battery_temp(output_adc_1, diode_adc_1);
+	sensor_data->battery_temperature = (int16_t)moving_average_filter((int32_t *)temp_buffer_1, FILTER_LENGTH);
+#ifdef TEST
+	sensor_data->battery_temperature = 3456;
 #endif
+
+    // Read temperature from the second LM35 sensor
+    uint16_t output_adc_2 = read_mux_channel(1, MUX_TEMP_SELECT_PIN_MASK, ADC_CHANNEL_TEMP_SENSOR); // Vout LM35 sensor 2
+    uint16_t diode_adc_2 = read_mux_channel(3, MUX_TEMP_SELECT_PIN_MASK, ADC_CHANNEL_TEMP_SENSOR); // Diode voltage LM35 sensor 2
+    for (int i = FILTER_LENGTH - 1; i > 0; i--) {
+		temp_buffer_2[i] = temp_buffer_2[i - 1];
+	}
+	temp_buffer_2[0] = adc_convert_battery_temp(output_adc_2, diode_adc_2);
+	sensor_data->battery_temperature_alt = (int16_t)moving_average_filter((int32_t *)temp_buffer_2, FILTER_LENGTH);
+#ifdef TEST
+	sensor_data->battery_temperature_alt = 3123;
+#endif
+}
+
+void read_current_sensors(sensor_values_t *sensor_data)
+{
+    // Read charging current
+    uint16_t current_adc_1 = read_mux_channel(0, MUX_CURR_SELECT_PIN_MASK, ADC_CHANNEL_SHUNT_CURRENT); // Charging current
+    for (int i = FILTER_LENGTH - 1; i > 0; i--) {
+		current_buffer_1[i] = current_buffer_1[i - 1];
+	}
+	current_buffer_1[0] = adc_convert_battery_current(current_adc_1);
+	sensor_data->battery_current_charge = (uint16_t)moving_average_filter((int32_t *)current_buffer_1, FILTER_LENGTH);
+#ifdef TEST
+	sensor_data->battery_current_charge = 90;
+#endif
+
+    // Read discharging current
+    uint16_t current_adc_2 = read_mux_channel(1, MUX_CURR_SELECT_PIN_MASK, ADC_CHANNEL_SHUNT_CURRENT); // Discharging current
+    for (int i = FILTER_LENGTH - 1; i > 0; i--) {
+        current_buffer_2[i] = current_buffer_2[i - 1];
+    }
+    current_buffer_2[0] = adc_convert_battery_current(current_adc_2);
+    sensor_data->battery_current_discharge =  (uint16_t)moving_average_filter((int32_t *)current_buffer_2, FILTER_LENGTH);
+#ifdef TEST
+    sensor_data->battery_current_discharge = 120;
+#endif
+}
+
+
+void read_voltage_sensors(sensor_values_t *sensor_data)
+{
+    uint16_t cell_voltage_adc;
+
+    // Read voltage from first multiplexer (Battery 1 and Battery 2)
+    for (int channel = 0; channel < 2; ++channel) {
+        cell_voltage_adc = read_mux_channel(channel, MUX_BATT1_SELECT_PIN_MASK, ADC_CHANNEL_VOLTAGE_MEASUREMENT_1);
+
+        // Store and filter the readings
+        for (int i = FILTER_LENGTH - 1; i > 0; i--) {
+            voltage_buffer_1[channel][i] = voltage_buffer_1[channel][i - 1];
+        }
+        voltage_buffer_1[channel][0] = adc_convert_cell_voltage(cell_voltage_adc);
+        sensor_data->cell_voltage[channel] =  (uint16_t)moving_average_filter((int32_t *)voltage_buffer_1[channel], FILTER_LENGTH);
+#ifdef TEST
+        sensor_data->cell_voltage[channel] = 2890;
+#endif
+    }
+
+    // Read voltage from second multiplexer (Battery 3 and Battery 4)
+    for (int channel = 0; channel < 2; ++channel) {
+        cell_voltage_adc = read_mux_channel(channel, MUX_BATT2_SELECT_PIN_MASK, ADC_CHANNEL_VOLTAGE_MEASUREMENT_2);
+
+        // Store and filter the readings
+        for (int i = FILTER_LENGTH - 1; i > 0; i--) {
+            voltage_buffer_1[channel + 2][i] = voltage_buffer_1[channel + 2][i - 1];
+        }
+        voltage_buffer_1[channel + 2][0] = adc_convert_cell_voltage(cell_voltage_adc);
+        sensor_data->cell_voltage[channel + 2] =  (uint16_t)moving_average_filter((int32_t *)voltage_buffer_1[channel + 2], FILTER_LENGTH);
+#ifdef TEST
+        sensor_data->cell_voltage[channel + 2] = 2756;
+#endif
+    }
+}
+
+void read_all_sensors(sensor_values_t *sensor_data)
+{
+    read_temperature_sensors(sensor_data);
+    read_current_sensors(sensor_data);
+    read_voltage_sensors(sensor_data);
+}
 
 
