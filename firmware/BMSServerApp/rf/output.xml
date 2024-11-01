@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 6.1.1 (Python 3.12.3 on win32)" generated="20241101 02:59:45.757" rpa="false" schemaversion="4">
+<suite id="s1" name="Testing" source="C:\Users\Lerben\Desktop\firmware\BMSServerApp\rf\testing.robot">
+<test id="s1-t1" name="Test Device Status Command" line="10">
+<kw name="Open Serial Port" library="SerialLibrary">
+<arg>${PORT}</arg>
+<arg>${BAUDRATE}</arg>
+<status status="PASS" starttime="20241101 02:59:45.817" endtime="20241101 02:59:45.819"/>
+</kw>
+<kw name="Write To Serial" library="SerialLibrary">
+<arg>~STATUS\n</arg>
+<status status="PASS" starttime="20241101 02:59:45.820" endtime="20241101 02:59:45.820"/>
+</kw>
+<kw name="Read From Serial" library="SerialLibrary">
+<var>${response}</var>
+<arg>${TIMEOUT}</arg>
+<msg timestamp="20241101 02:59:45.921" level="INFO">${response} = Device is working</msg>
+<status status="PASS" starttime="20241101 02:59:45.820" endtime="20241101 02:59:45.921"/>
+</kw>
+<kw name="Sleep" library="BuiltIn">
+<arg>0.1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<msg timestamp="20241101 02:59:46.023" level="INFO">Slept 100 milliseconds</msg>
+<status status="PASS" starttime="20241101 02:59:45.922" endtime="20241101 02:59:46.023"/>
+</kw>
+<kw name="Should Be Equal As Strings" library="BuiltIn">
+<arg>${response}</arg>
+<arg>Device is working</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" starttime="20241101 02:59:46.024" endtime="20241101 02:59:46.024"/>
+</kw>
+<kw name="Close Serial Port" library="SerialLibrary">
+<status status="PASS" starttime="20241101 02:59:46.025" endtime="20241101 02:59:46.026"/>
+</kw>
+<status status="PASS" starttime="20241101 02:59:45.816" endtime="20241101 02:59:46.026"/>
+</test>
+<test id="s1-t2" name="Test Device Working Confirmation Command" line="18">
+<kw name="Open Serial Port" library="SerialLibrary">
+<arg>${PORT}</arg>
+<arg>${BAUDRATE}</arg>
+<status status="PASS" starttime="20241101 02:59:46.030" endtime="20241101 02:59:46.033"/>
+</kw>
+<kw name="Write To Serial" library="SerialLibrary">
+<arg>~MAKESURE\n</arg>
+<status status="PASS" starttime="20241101 02:59:46.034" endtime="20241101 02:59:46.034"/>
+</kw>
+<kw name="Read From Serial" library="SerialLibrary">
+<var>${response}</var>
+<arg>${TIMEOUT}</arg>
+<msg timestamp="20241101 02:59:46.137" level="INFO">${response} = Device is indeed working</msg>
+<status status="PASS" starttime="20241101 02:59:46.035" endtime="20241101 02:59:46.137"/>
+</kw>
+<kw name="Sleep" library="BuiltIn">
+<arg>0.1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<msg timestamp="20241101 02:59:46.240" level="INFO">Slept 100 milliseconds</msg>
+<status status="PASS" starttime="20241101 02:59:46.138" endtime="20241101 02:59:46.240"/>
+</kw>
+<kw name="Should Be Equal As Strings" library="BuiltIn">
+<arg>${response}</arg>
+<arg>Device is indeed working</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" starttime="20241101 02:59:46.242" endtime="20241101 02:59:46.243"/>
+</kw>
+<kw name="Close Serial Port" library="SerialLibrary">
+<status status="PASS" starttime="20241101 02:59:46.244" endtime="20241101 02:59:46.245"/>
+</kw>
+<status status="PASS" starttime="20241101 02:59:46.029" endtime="20241101 02:59:46.246"/>
+</test>
+<test id="s1-t3" name="Test Device Status Command 2" line="26">
+<kw name="Open Serial Port" library="SerialLibrary">
+<arg>${PORT}</arg>
+<arg>${BAUDRATE}</arg>
+<status status="PASS" starttime="20241101 02:59:46.256" endtime="20241101 02:59:46.259"/>
+</kw>
+<kw name="Write To Serial" library="SerialLibrary">
+<arg>~STATUS\n</arg>
+<status status="PASS" starttime="20241101 02:59:46.262" endtime="20241101 02:59:46.263"/>
+</kw>
+<kw name="Read From Serial" library="SerialLibrary">
+<var>${response}</var>
+<arg>${TIMEOUT}</arg>
+<msg timestamp="20241101 02:59:46.366" level="INFO">${response} = Device is working</msg>
+<status status="PASS" starttime="20241101 02:59:46.264" endtime="20241101 02:59:46.366"/>
+</kw>
+<kw name="Sleep" library="BuiltIn">
+<arg>0.1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<msg timestamp="20241101 02:59:46.468" level="INFO">Slept 100 milliseconds</msg>
+<status status="PASS" starttime="20241101 02:59:46.367" endtime="20241101 02:59:46.468"/>
+</kw>
+<kw name="Should Be Equal As Strings" library="BuiltIn">
+<arg>${response}</arg>
+<arg>Device is working</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" starttime="20241101 02:59:46.469" endtime="20241101 02:59:46.469"/>
+</kw>
+<kw name="Close Serial Port" library="SerialLibrary">
+<status status="PASS" starttime="20241101 02:59:46.470" endtime="20241101 02:59:46.471"/>
+</kw>
+<status status="PASS" starttime="20241101 02:59:46.255" endtime="20241101 02:59:46.471"/>
+</test>
+<status status="PASS" starttime="20241101 02:59:45.759" endtime="20241101 02:59:46.474"/>
+</suite>
+<statistics>
+<total>
+<stat pass="3" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="3" fail="0" skip="0" id="s1" name="Testing">Testing</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
