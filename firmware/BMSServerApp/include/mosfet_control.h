@@ -69,33 +69,29 @@ void set_discharge_mosfet(mosfet_state_t state);
  * @brief Checks for overcurrent condition and updates fault bitmask.
  *
  * @param current_max Maximum current reading from the sensor.
- * @param current_time Current timestamp.
  */
-void check_overcurrent(uint16_t current_max, time_t current_time);
+void check_overcurrent(uint16_t current_max);
 
 /**
  * @brief Checks for body diode protection condition and updates fault bitmask.
  *
  * @param current Current reading from the sensor.
- * @param current_time Current timestamp.
  */
-void check_body_diode_protection(uint16_t current, time_t current_time);
+void check_body_diode_protection(uint16_t current);
 
 /**
  * @brief Checks for over-temperature condition and updates fault bitmask.
  *
  * @param temperature Temperature reading from the sensor.
- * @param current_time Current timestamp.
  */
-void check_over_temperature_protection(int16_t temperature, time_t current_time);
+void check_over_temperature_protection(int16_t temperature);
 
 /**
  * @brief Checks for low-temperature condition and updates fault bitmask.
  *
  * @param temperature Temperature reading from the sensor.
- * @param current_time Current timestamp.
  */
-void check_low_temperature_protection(int16_t temperature, time_t current_time);
+void check_low_temperature_protection(int16_t temperature);
 
 /**
  * @brief Checks for voltage protection conditions and updates fault bitmask.
