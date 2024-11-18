@@ -49,7 +49,7 @@ The BMSServerApp project also supports automated builds via GitHub Actions. This
 # `prototyping`
 This directory contains code, configurations, and other resources related to early-stage prototyping of the BMS project. It is used for experimenting with features, creating proof-of-concept implementations, and testing ideas before moving to production.  
 
-- **Breadboard Prototyping**: The breadboard setup for the current measurement module and temperature measurement prototypes are stored here.   
+- **Breadboard Prototyping**: The breadboard setup for the [current measurement module](https://liyuanliull.atlassian.net/wiki/spaces/BMSDEVELOP/pages/6520833/Voltage+Temperature+and+Current+measurement+Overview) and [temperature measurement prototypes](https://liyuanliull.atlassian.net/wiki/spaces/BMSDEVELOP/pages/8257538/Temperature+Measurement+Module+Prototyping+Documentation.) are stored in confluence.   
 - **Calibration Functions**: Software calibration functions are developed to accommodate real-world measurements from the hardware prototypes, especially for current and temperature sensors.   
 Detailed documentation can be found in Confluence.  
 
