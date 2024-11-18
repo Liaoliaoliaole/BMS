@@ -65,7 +65,7 @@ LTSpice Simulations: Simulation files created in LTSpice are used to validate th
 # `test`
 This directory contains both hardware and software test cases and configurations for validating the BMS system.   
 
-**Hardware Testing**: Includes test cases and documentation for validating the physical components of the BMS system: mosfet board, main board, current measurement board and temperature measurement board.   
+**Hardware Testing**: Includes [test cases](https://liyuanliull.atlassian.net/wiki/spaces/BMSDEVELOP/pages/20250626/Hardware+testing+notes) and documentation for validating the physical components of the BMS system: mosfet board, main board, current measurement board and temperature measurement board.   
 
 **Software Testing**: The software testing for the BMSServerApp and BMSClientApp was conducted using several approaches to ensure robust functionality and communication. Key testing scenarios include:     
 - ADC Converter Testing: Simulated mock ADC values to validate the proper functioning of the ADC conversion process in the software, ensuring accurate data handling.   
