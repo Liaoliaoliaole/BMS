@@ -65,9 +65,15 @@ LTSpice Simulations: Simulation files created in LTSpice are used to validate th
 # `test`
 This directory contains both hardware and software test cases and configurations for validating the BMS system.   
 
-- **Hardware Testing**: Includes test cases and documentation for validating the physical components of the BMS system.     
-- **Software Testing**: Includes test cases for the BMSServerApp and BMSClientApp software.      
-Details of the hardware and software tests can be found in Confluence.
+**Hardware Testing**: Includes test cases and documentation for validating the physical components of the BMS system: mosfet board, main board, current measurement board and temperature measurement board.   
+
+**Software Testing**: The software testing for the BMSServerApp and BMSClientApp was conducted using several approaches to ensure robust functionality and communication. Key testing scenarios include:     
+- ADC Converter Testing: Simulated mock ADC values to validate the proper functioning of the ADC conversion process in the software, ensuring accurate data handling.   
+- Modbus Communication Testing: Tested Modbus function code 04 to verify reliable communication between the server and client, ensuring proper data exchange over the Modbus protocol.   
+- Grafana Visualization: Validated the integration with Grafana by verifying the display of MCU-sent values on the Grafana dashboard, ensuring accurate and real-time monitoring of system metrics.   
+- MOSFET Control Scenarios: Tested various MOSFET control scenarios by simulating different voltage, current, and temperature conditions. This validated the software's ability to control MOSFETs based on these parameters, ensuring correct operation under varying environmental and system conditions.
+
+Detailed results of these hardware and software tests can be found in test dir README.
 
 # `views`
 The views directory contains the graphical user interface (GUI) and front-end design files for the BMS project, including visual representations and user interaction designs.   
