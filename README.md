@@ -3,6 +3,7 @@
 # Project Structure
 
 This repository contains the following directories to organize various aspects of the Battery Management System (BMS) project:
+Meeting note and scrum report for scrum could be found from [Jira](https://liyuanliull.atlassian.net/jira/software/projects/SCRUM/boards/1/reports).
 
 # `firmware`
 The firmware directory includes the BMSServerApp source code. This application runs on the STM32L152RE Nucleo development board.   
