@@ -18,7 +18,7 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 sql = ("INSERT INTO measurments (temperature1, temperature2, voltage1, voltage2, voltage3, voltage4, "
-       "current1, current2, time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+       "current_charge, current_discharge, time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
 
 def write_to_mysql(input_values):
@@ -26,7 +26,7 @@ def write_to_mysql(input_values):
     timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
     val = (input_values[0] / 100, input_values[1] / 100, input_values[2] / 1000, input_values[3] / 1000,
-           input_values[4] / 1000, input_values[5] / 1000, input_values[6], input_values[7], timestamp)
+           input_values[4] / 1000, input_values[5] / 1000, input_values[6] / 1000, input_values[7] / 1000, timestamp)
     mycursor.execute(sql, val)
 
     mydb.commit()
