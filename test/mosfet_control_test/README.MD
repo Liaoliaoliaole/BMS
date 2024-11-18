@@ -141,9 +141,9 @@ Test Case 4: Body Diode Protection #####
 All faults cleared.
 Debounce Passed: 0
 High current detected. Body diode protection activated. Turning on both MOSFETs to protect diode.Debounce Passed: 1    
-# 4.1 BODY_DIODE_PROTECTION_TRIGGERED: Charge ON, Discharge ON
+#4.1 BODY_DIODE_PROTECTION_TRIGGERED: Charge ON, Discharge ON
 Test Case 5: Body Diode Protection Cleared #####
 Debounce Passed: 1
 Debounce Passed: 1
 #4.2 BODY_DIODE_PROTECTION_CLEARED: Charge ON, Discharge ON
-All Test Cases Passed #####
+All Test Cases Passed
