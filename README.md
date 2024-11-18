@@ -47,13 +47,28 @@ The BMSServerApp project also supports automated builds via GitHub Actions. This
   4. Download the Binary File:  Click on the link for the binary file you want to download (e.g., `BMSServerApp-Debug-bin`, `BMSServerApp-Release-bin`, or `BMSServerApp-Test-bin`).   
 
 # `prototyping`
-This section will store the code, configurations, and other resources related to early-stage project prototyping. It will be used to experiment with features, develop proof-of-concept implementations, and try out ideas before they are moved into production.
+This directory contains code, configurations, and other resources related to early-stage prototyping of the BMS project. It is used for experimenting with features, creating proof-of-concept implementations, and testing ideas before moving to production.  
+
+- **Breadboard Prototyping**: The breadboard setup for the current measurement module and temperature measurement prototypes are stored here.   
+- **Calibration Functions**: Software calibration functions are developed to accommodate real-world measurements from the hardware prototypes, especially for current and temperature sensors.   
+Detailed documentation can be found in Confluence.  
 
 # `schematic`
-The schematic directory will include electrical and hardware design diagrams, such as circuit layouts, component schematics, and PCB designs. Any files related to the hardware structure will be stored here.
+The schematic directory contains electrical and hardware design files, including circuit layouts, component schematics, and PCB designs. These designs are created using KiCad 7.0 and include PCB design files as well. All hardware-related files are stored here for reference.   
 
 # `simulation`
-This folder will contain simulation models, scripts, and testing environments used for validating the BMS design and performance before physical implementation. Files related to simulation tools, test cases, and results will be stored here.
+This folder contains simulation models, scripts, and testing environments used for validating the BMS design and performance before physical implementation. Files related to simulation tools, test cases, and results are stored here.   
+
+LTSpice Simulations: Simulation files created in LTSpice are used to validate the electrical design prior to prototyping.   
+
+# `test`
+This directory contains both hardware and software test cases and configurations for validating the BMS system.   
+
+- **Hardware Testing**: Includes test cases and documentation for validating the physical components of the BMS system.     
+- **Software Testing**: Includes test cases for the BMSServerApp and BMSClientApp software.      
+Details of the hardware and software tests can be found in Confluence.
 
 # `views`
-This directory is for the graphical user interface (GUI) and front-end design files for the BMS project, including visual representations and user interaction designs.
+The views directory contains the graphical user interface (GUI) and front-end design files for the BMS project, including visual representations and user interaction designs.   
+
+Grafana: The BMS project uses Grafana for visualization. A short documentation on how to log in and set up Grafana dashboards for monitoring BMS metrics is provided.   
