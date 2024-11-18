@@ -14,7 +14,7 @@ All faults cleared.
 Setting Charge MOSFET: OFF (Internal state: 0)
 Setting Discharge MOSFET: OFF
 All faults cleared.
-##### Test Case 1: Temperature -35 degree #####
+Test Case 1: Temperature -35 degree #####
 Debounce Passed: 0
 Temperature below -20 C. Setting fault flag.
 Debounce Passed: 1
@@ -24,7 +24,7 @@ All faults cleared.
 Setting Charge MOSFET: OFF (Internal state: 0)
 Setting Discharge MOSFET: OFF
 All faults cleared.
-##### Test Case 1: Temperature -15 degree #####
+Test Case 1: Temperature -15 degree #####
 Debounce Passed: 0
 Temperature between -20 C and 5 C. Discharge only allowed.
 Debounce Passed: 1
@@ -48,7 +48,7 @@ All faults cleared.
 Setting Charge MOSFET: OFF (Internal state: 0)
 Setting Discharge MOSFET: OFF
 All faults cleared.
-##### Test Case 1: Temperature 35 degree #####
+Test Case 1: Temperature 35 degree #####
 Debounce Passed: 0
 Temperature between 30 C and 40 C. Discharge only allowed.
 Debounce Passed: 1
@@ -86,7 +86,7 @@ All faults cleared.
 Setting Charge MOSFET: OFF (Internal state: 0)
 Setting Discharge MOSFET: OFF
 All faults cleared.
-##### Test Case 2: Overcurrent 10.000000 A #####
+Test Case 2: Overcurrent 10.000000 A #####
 Debounce Passed: 0
 High current detected. Body diode protection activated. Turning on both MOSFETs to protect diode.Overcurrent detected. Setting fault flag.
 Debounce Passed: 1
@@ -102,7 +102,7 @@ High current detected. Body diode protection activated. Turning on both MOSFETs 
 Debounce Passed: 1
 Overcurrent detected. Setting fault flag.
 OVERCURRENT: Charge OFF, Discharge OFF
-##### Test Case 3: Voltage Protection #####
+Test Case 3: Voltage Protection #####
 All faults cleared.
 Setting Charge MOSFET: OFF (Internal state: 0)
 Setting Discharge MOSFET: OFF
@@ -137,13 +137,13 @@ Setting Charge MOSFET: ON (Internal state: 1)
 Setting Discharge MOSFET: ON
 NORMAL_OPERATION: Charge ON, Discharge ON.
 #3.3 VOLTAGE_NORMAL: Charge ON, Discharge ON
-##### Test Case 4: Body Diode Protection #####
+Test Case 4: Body Diode Protection #####
 All faults cleared.
 Debounce Passed: 0
 High current detected. Body diode protection activated. Turning on both MOSFETs to protect diode.Debounce Passed: 1    
 # 4.1 BODY_DIODE_PROTECTION_TRIGGERED: Charge ON, Discharge ON
-##### Test Case 5: Body Diode Protection Cleared #####
+Test Case 5: Body Diode Protection Cleared #####
 Debounce Passed: 1
 Debounce Passed: 1
 #4.2 BODY_DIODE_PROTECTION_CLEARED: Charge ON, Discharge ON
-##### All Test Cases Passed #####
+All Test Cases Passed #####
