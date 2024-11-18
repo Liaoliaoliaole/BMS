@@ -5,6 +5,7 @@ Run:
 `./test`   
 Should see:   
 
+```
 ##### Test MOSFET State Control with Sensor Values #####
 All faults cleared.
 Setting Charge MOSFET: OFF (Internal state: 0)
@@ -147,3 +148,4 @@ Debounce Passed: 1
 Debounce Passed: 1
 #4.2 BODY_DIODE_PROTECTION_CLEARED: Charge ON, Discharge ON
 All Test Cases Passed
+```
