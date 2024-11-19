@@ -76,6 +76,36 @@ This directory contains both hardware and software test cases and configurations
 Detailed results of these hardware and software tests can be found in test dir README.
 
 # `views`
-The views directory contains the graphical user interface (GUI) and front-end design files for the BMS project, including visual representations and user interaction designs.   
+The BMS project uses Grafana for visualization. A short documentation on how to log in and set up Grafana dashboards for monitoring BMS metrics is provided.
 
-Grafana: The BMS project uses Grafana for visualization. A short documentation on how to log in and set up Grafana dashboards for monitoring BMS metrics is provided.   
+### How to Use Grafana
+
+**Logging in as Guest**
+1. Access Grafana: Open your web browser and navigate to the [Grafana URL](http://16.16.145.115:3000/login).
+2. Guest Login: On the login page use username *Grafana_Viewer* and password *8qr8MzZM*.
+3. Browse Dashboards: As a guest, you will have read-only access to the dashboards. You can browse through the available visualizations, interact with the data by zooming in on graphs, and apply filters to view specific data ranges.
+
+**Logging in as Admin**
+1. Access Grafana: Open your web browser and navigate to the [Grafana URL](http://16.16.145.115:3000/login).
+2. Admin Login: Enter the admin username and password. You can obtain this data on request.
+3. Admin Dashboard: Once logged in, you will have full access to all Grafana features, including the ability to create, edit, and delete dashboards, manage data sources, and configure system settings.
+
+**Adding New Visualizations**
+1. Add a Panel: Click on "Add new panel" to start creating a new visualization.
+2. Select Data Source: Choose the data source from which you want to pull data. This is BMS database in our case.
+3. Configure Query: Write the query to fetch the data you need. 
+4. Choose Visualization Type: Select the type of visualization you want to create, such as a graph, table or heatmap.
+5. Save the Panel: Once you are satisfied with the configuration, click "Apply" to add the panel to your dashboard. Don't forget to save the dashboard itself to retain your changes.
+
+### Testing
+
+**For Test Purposes with Static Values Compile BMSServerApp (STM32) with Symbol TEST**
+
+1. Open the BMSServerApp project in your IDE.
+2. Locate the project settings where preprocessor symbols are defined. This is typically found under project properties or build settings.
+3. Add the symbol `TEST` to the list of preprocessor definitions.
+4. Build the project. This will generate the firmware binary with the test mode enabled.
+5. Flash the compiled firmware onto the STM32 microcontroller using a programmer or debugger tool.
+6. With the test firmware running, the BMSServerApp will use predefined static values instead of real sensor data, allowing you to test the system's functionality without needing actual sensor inputs.
+
+**For Testing Grafana Without Using STM32 Run `test_data_generator.py` from Views Folder**
