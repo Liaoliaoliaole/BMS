@@ -1,0 +1,22 @@
+Circuit: * C:\Users\hongy\OneDrive\Máy tính\Embedded Project\short_circuit_protection_version2.asc
+
+Direct Newton iteration for .op point succeeded.
+
+Date: Tue Nov 19 01:19:20 2024
+Total elapsed time: 0.122 seconds.
+
+tnom = 27
+temp = 27
+method = modified trap
+totiter = 1349
+traniter = 1330
+tranpoints = 575
+accept = 497
+rejected = 78
+matrix size = 14
+fillins = 1
+solver = Normal
+Avg thread counts: 6.5/12.4/12.1/6.5
+Matrix Compiler1: 890 bytes object code size  0.2/0.1/[0.1]
+Matrix Compiler2: off  [0.1]/0.1/0.1
+
