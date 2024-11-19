@@ -18,7 +18,7 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 sql = ("INSERT INTO measurments (temperature1, temperature2, voltage1, voltage2, voltage3, voltage4, "
-       "current_charge, current_discharge, time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+       "current_FULL, time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
 
 def write_to_mysql(input_values):
@@ -26,16 +26,12 @@ def write_to_mysql(input_values):
     timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
     val = (input_values[0] / 100, input_values[1] / 100, input_values[2] / 1000, input_values[3] / 1000,
-           input_values[4] / 1000, input_values[5] / 1000, input_values[6] / 1000, input_values[7] / 1000, timestamp)
+           input_values[4] / 1000, input_values[5] / 1000, input_values[6], timestamp)
     mycursor.execute(sql, val)
 
     mydb.commit()
 
     print(timestamp, input_values[0], input_values[1])
-
-
-# Initialize serial port
-port = serial.Serial('COM6', baudrate=9600, timeout=1, dsrdtr=False, bytesize=serial.EIGHTBITS)
 
 
 # Calculate CRC
@@ -44,11 +40,9 @@ def calculate_crc(data):
     return crc16(data)
 
 
-# Send modbus request and receive data
-def modbus_request(port, slave_addr=0x01, function_code=0x04, start_addr=0x00, register_count=8):
+def modbus_request(port, register_count=7):
     # Send request for register values.
-    request = [slave_addr, function_code, (start_addr >> 8) & 0xFF, start_addr & 0xFF, (register_count >> 8) & 0xFF,
-               register_count & 0xFF]
+    request = [0x01, 0x04, 0x00, 0x00, 0x00, register_count]
     crc = calculate_crc(bytearray(request))
     request += [crc & 0xFF, (crc >> 8) & 0xFF]  # Add CRC to the request
     print("Request:", request)
@@ -82,6 +76,9 @@ def modbus_request(port, slave_addr=0x01, function_code=0x04, start_addr=0x00, r
 
         # Extract values from the slave's response
         values = [(received[3 + (i * 2)] << 8) | received[4 + (i * 2)] for i in range(register_count)]
+        for i in range(register_count):
+            print(f"Sensor {i + 1} Value: {values[i]}")
+
         return values
 
     except Exception as e:
@@ -89,24 +86,17 @@ def modbus_request(port, slave_addr=0x01, function_code=0x04, start_addr=0x00, r
         return [0] * register_count  # Return default values on error
 
 
+# Initialize serial port
+port = serial.Serial('COM5  ', baudrate=9600, timeout=1, dsrdtr=False, bytesize=serial.EIGHTBITS)
+
 try:
     # Main loop
     while True:
-        # Request sensor values from the ServerApp
         values = modbus_request(port)
+        for i in range(len(values)):
+            print(f"Sensor {i + 1} Value: {values[i]}")  # Display sensor values
 
-        # Display sensor values
-        if values[0] != 0:  # Check if valid data is received
-            print("\n--- Sensor Values ---")
-            print(f"Battery Temperature 1: {values[0]} hundredths of a degree Celsius")
-            print(f"Battery Temperature 2: {values[1]} hundredths of a degree Celsius")
-            print(f"Voltage Cell 1: {values[2]} mV")
-            print(f"Voltage Cell 2: {values[3]} mV")
-            print(f"Voltage Cell 3: {values[4]} mV")
-            print(f"Voltage Cell 4: {values[5]} mV")
-            print(f"Current (Charge): {values[6]} mA")
-            print(f"Current (Discharge): {values[7]} mA")
-            print("---------------------\n")
+        if values[0] != 0:
             write_to_mysql(values)
 
         time.sleep(0.5)  # Delay before the next request; adjust as necessary

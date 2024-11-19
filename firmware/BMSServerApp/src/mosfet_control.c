@@ -14,9 +14,11 @@ static system_state_t previous_system_state = STATE_BOTH_OFF;
 static mosfet_state_t previous_charge_mosfet_state = MOSFET_OFF;
 static mosfet_state_t previous_discharge_mosfet_state = MOSFET_OFF;
 
+static bool body_diode_fault_flag = false;
+static bool immediate_action_required = false;
 static uint8_t fault_bitmask = 0x00;
-static time_t last_switch_time = 0;
-time_t current_mock_time = 0;
+static uint32_t last_switch_time = 0;
+uint32_t current_mock_time = 0;
 
 //Resets the MOSFET control logic to initial states.
 // This function resets the MOSFET states and clears any existing fault flags.
@@ -25,6 +27,8 @@ void reset_mosfet_control_logic() {
     previous_discharge_mosfet_state = MOSFET_OFF;
 
     fault_bitmask = 0x00;
+    body_diode_fault_flag = false;
+    immediate_action_required = false;
 
     last_switch_time = get_current_time_ms();
 
@@ -57,7 +61,7 @@ void mosfet_control_logic(sensor_values_t* sensor_values) {
         return; // Prevent dereferencing a NULL pointer
     }
 
-    time_t current_time = get_current_time_ms();
+    uint32_t current_time = get_current_time_ms();
     bool debounce_passed = (current_time - last_switch_time) >= DEBOUNCE_DELAY_MS;
 
     // Use the higher of charge or discharge current for protections
@@ -69,22 +73,29 @@ void mosfet_control_logic(sensor_values_t* sensor_values) {
 							  ? sensor_values->battery_temperature : sensor_values->battery_temperature_alt;
 
     // Update fault flags based on sensor values
-    check_overcurrent(current_max, current_time);
-    check_body_diode_protection(current_max, current_time);
-    check_over_temperature_protection(temperature_max, current_time);
-    check_low_temperature_protection(temperature_min, current_time);
+    check_body_diode_protection(current_max);
+    check_overcurrent(current_max);
+    check_over_temperature_protection(temperature_max);
+    check_low_temperature_protection(temperature_min);
     check_voltage_protection(sensor_values->cell_voltage);
 
     // Determine system state based on all available sensor data
     system_state_t current_system_state = determine_system_state();
 
     // Update MOSFET states if debounce has passed and there are no active faults
-    if (debounce_passed) {
+    if (immediate_action_required) {
+        update_mosfet_states(current_system_state, current_time);
+        previous_system_state = current_system_state;
+        immediate_action_required = false; // Reset the flag
+        last_switch_time = current_time;   // Update last switch time
+    } else if (debounce_passed) {
         if (current_system_state != previous_system_state) {
             update_mosfet_states(current_system_state, current_time);
             previous_system_state = current_system_state;
+            last_switch_time = current_time;
         }
     } else {
+        // Debounce not passed, revert to previous MOSFET states
         if (previous_charge_mosfet_state != charge_mosfet_pin_state) {
             set_charge_mosfet(previous_charge_mosfet_state);
         }
@@ -120,39 +131,51 @@ void short_circuit_isr() {
     previous_discharge_mosfet_state = MOSFET_OFF;
 }
 
-void check_overcurrent(uint16_t current_max, time_t current_time) {
+void check_overcurrent(uint16_t current_max) {
     if (current_max >= OVERCURRENT_THRESHOLD) {
         fault_bitmask |= (1 << 1); // Set bit 1 for overcurrent
-        USART2_send_string("Overcurrent detected. Setting fault flag.\n\r");
     } else {
         fault_bitmask &= ~(1 << 1); // Clear bit 1
     }
 }
 
-void check_body_diode_protection(uint16_t current, time_t current_time) {
+void check_body_diode_protection(uint16_t current) {
     if (current >= HIGH_CURRENT_THRESHOLD) {
-        fault_bitmask |= (1 << 2); // Set bit 2 for high threshold current
-        USART2_send_string("High current detected. Setting body diode protection flag.\n\r");
+        if (!body_diode_fault_flag) {
+            body_diode_fault_flag = true;
+            immediate_action_required = true;
+        }
     } else {
-        fault_bitmask &= ~(1 << 2); // Clear bit 2
+        if (body_diode_fault_flag) {
+            body_diode_fault_flag = false;
+            immediate_action_required = true;
+        }
     }
 }
 
-void check_over_temperature_protection(int16_t temperature, time_t current_time) {
-    if (temperature > OVER_TEMPERATURE_THRESHOLD) {
-        fault_bitmask |= (1 << 3); // Set bit 3 for over-temperature
-        USART2_send_string("Temperature out of range. Setting fault flag.\n\r");
+void check_over_temperature_protection(int16_t temperature) {
+    if (temperature > DISCHARGE_OVER_TEMPERATURE_THRESHOLD) {
+        fault_bitmask |= (1 << 2);
     } else {
-        fault_bitmask &= ~(1 << 3); // Clear bit 3
+        fault_bitmask &= ~(1 << 2);
+    }
+    if (temperature > CHARGE_OVER_TEMPERATURE_THRESHOLD && temperature <= DISCHARGE_OVER_TEMPERATURE_THRESHOLD) {
+        fault_bitmask |= (1 << 3);
+    } else {
+        fault_bitmask &= ~(1 << 3);
     }
 }
 
-void check_low_temperature_protection(int16_t temperature, time_t current_time) {
-    if (temperature < UNDER_TEMPERATURE_THRESHOLD) {
-        fault_bitmask |= (1 << 3); // Set bit 3 for under-temperature
-        USART2_send_string("Temperature out of range. Setting fault flag.\n\r");
+void check_low_temperature_protection(int16_t temperature) {
+    if (temperature < DISCHARGE_UNDER_TEMPERATURE_THRESHOLD) {
+        fault_bitmask |= (1 << 4);
     } else {
-        fault_bitmask &= ~(1 << 3); // Clear bit 3
+        fault_bitmask &= ~(1 << 4);
+    }
+    if (temperature >= DISCHARGE_UNDER_TEMPERATURE_THRESHOLD && temperature < CHARGE_UNDER_TEMPERATURE_THRESHOLD) {
+        fault_bitmask |= (1 << 5);
+    } else {
+        fault_bitmask &= ~(1 << 5);
     }
 }
 
@@ -171,39 +194,46 @@ void check_voltage_protection(uint16_t cell_voltage[4]) {
     }
 
     if (overvoltage) {
-        fault_bitmask |= (1 << 4); // Set bit 4 for overvoltage
-        USART2_send_string("Overvoltage detected. Setting fault flag.\n\r");
+        fault_bitmask |= (1 << 6); // Set bit 4 for overvoltage
     } else {
-        fault_bitmask &= ~(1 << 4); // Clear bit 4
+        fault_bitmask &= ~(1 << 6); // Clear bit 4
     }
 
     if (undervoltage) {
-        fault_bitmask |= (1 << 5); // Set bit 5 for undervoltage
-        USART2_send_string("Undervoltage detected. Setting fault flag.\n\r");
+        fault_bitmask |= (1 << 7); // Set bit 5 for undervoltage
     } else {
-        fault_bitmask &= ~(1 << 5); // Clear bit 5
+        fault_bitmask &= ~(1 << 7); // Clear bit 5
     }
 }
 
 // Determine the overall system state based on the fault bitmask
 system_state_t determine_system_state() {
-    if (fault_bitmask & ((1 << 1) | (1 << 3))) {
-        return STATE_BOTH_OFF; // Overcurrent and Overtemperature critical fault detected
+    // Critical faults - require both MOSFETs off
+    if (fault_bitmask & ((1 << 1) | (1 << 2) | (1 << 4))) {
+        return STATE_BOTH_OFF; // Overcurrent, over temperature (charge), or very low temperature
     }
 
-    if (fault_bitmask & (1 << 2)) {
-        return STATE_NORMAL_OPERATION; // High current (body diode protection)
+    // Body diode protection should have the highest priority - both MOSFETs on
+    if (body_diode_fault_flag) {
+        return STATE_NORMAL_OPERATION;
     }
 
-    if (fault_bitmask & (1 << 5)) {
-        return STATE_CHARGE_ONLY; // Undervoltage detected, only allow charging
+    // Discharge-only conditions
+    if (fault_bitmask & ((1 << 3) | (1 << 5))) {
+        return STATE_DISCHARGE_ONLY; // High temperature (discharge), low temperature (discharge), or overvoltage
     }
 
-    if (fault_bitmask & (1 << 4)) {
-        return STATE_DISCHARGE_ONLY; // Overvoltage detected, only allow discharging
+    // Charge-only conditions
+    if (fault_bitmask & (1 << 7)) {
+        return STATE_CHARGE_ONLY; // Undervoltage condition
     }
 
-    return STATE_NORMAL_OPERATION; // No faults detected
+    if (fault_bitmask & (1 << 6)) {
+        return STATE_DISCHARGE_ONLY;
+    }
+
+    // No faults detected, normal operation
+    return STATE_NORMAL_OPERATION;
 }
 
 // Update MOSFET states based on the overall system state

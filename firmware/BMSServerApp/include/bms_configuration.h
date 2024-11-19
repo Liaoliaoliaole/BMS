@@ -21,11 +21,17 @@
 /* Mosfet Control Configuration */
 #define SHORT_CIRCUIT_THRESHOLD 50000 // Threshold for short-circuit detection in milliamperes
 #define OVERCURRENT_THRESHOLD 9000 // Threshold for overcurrent detection in milliamperes
-#define OVER_TEMPERATURE_THRESHOLD 4500 // Over-temperature threshold in hundredths of degrees Celsius (e.g., 4500 = 45.00°C)
-#define UNDER_TEMPERATURE_THRESHOLD -2000 // Under-temperature threshold in hundredths of degrees Celsius (e.g., -2000 = -20.00°C)
+#define HIGH_CURRENT_THRESHOLD 1000 // Threshold for high current in milliamperes (for body diode protection)
+
+#define DISCHARGE_OVER_TEMPERATURE_THRESHOLD 4000       // Over-temperature threshold in hundredths of degrees Celsius (e.g., 4500 = 45.00°C) (for discharging)
+#define DISCHARGE_UNDER_TEMPERATURE_THRESHOLD -2000     // Under-temperature threshold in hundredths of degrees Celsius (e.g., -2000 = -20.00°C) (for discharging)
+
+#define CHARGE_OVER_TEMPERATURE_THRESHOLD 3000 // Over-temperature threshold in hundredths of degrees Celsius (e.g., 4500 = 45.00°C)  (for charging)
+#define CHARGE_UNDER_TEMPERATURE_THRESHOLD 500 // Under-temperature threshold in hundredths of degrees Celsius (e.g., -2000 = -20.00°C) (for charging)
+
 #define LOW_VOLTAGE_THRESHOLD 2800 // Low voltage threshold per cell in millivolts
 #define HIGH_VOLTAGE_THRESHOLD 3200 // High voltage threshold per cell in millivolts
-#define HIGH_CURRENT_THRESHOLD 1000 // Threshold for high current in milliamperes (for body diode protection)
+
 #define DEEP_SLEEP_TEMP_THRESHOLD -4000 // -40.00°C in hundredths of a degree
 #define WAKE_UP_TEMP_THRESHOLD -2000    // -20.00°C in hundredths of a degree
 
